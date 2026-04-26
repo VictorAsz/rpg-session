@@ -6,7 +6,8 @@ import { AuthService } from '../../core/services/auth.service';
 import { RealtimeService } from '../../core/services/realtime.service';
 import { CatalogService } from '../../domain/compendium/services/catalog.service';
 import { CatalogStore } from '../../domain/compendium/services/catalog.store';
-import type { SpellCatalog, AbilityCatalog } from '../../shared/models/rpg-models';
+import { MAGIC_SCHOOLS } from '../../shared/models/rpg-models';
+import type { SpellCatalog, AbilityCatalog, MagicSchool } from '../../shared/models/rpg-models';
 
 type TabMode = 'spells' | 'abilities';
 
@@ -56,7 +57,14 @@ type TabMode = 'spells' | 'abilities';
                     <option value="encantamento">Encantamento</option>
                   </select>
                 </label>
-                <label>Escola <input formControlName="school" /></label>
+                <label>
+                  Escola
+                  <select formControlName="school">
+                    @for (s of schools; track s.value) {
+                      <option [value]="s.value">{{ s.label }}</option>
+                    }
+                  </select>
+                </label>
                 <label>Elemento <input formControlName="element" /></label>
                 <label>Requisito <input formControlName="requirement" /></label>
                 <label>
@@ -106,7 +114,14 @@ type TabMode = 'spells' | 'abilities';
                   </select>
                 </label>
                 <label>Qtd. Custo <input type="number" formControlName="costAmount" /></label>
-                <label>Escola <input formControlName="school" /></label>
+                <label>
+                  Escola
+                  <select formControlName="school">
+                    @for (s of schools; track s.value) {
+                      <option [value]="s.value">{{ s.label }}</option>
+                    }
+                  </select>
+                </label>
                 <label>Elemento <input formControlName="element" /></label>
                 <label>Requisito <input formControlName="requirement" /></label>
                 <label>
@@ -143,7 +158,7 @@ type TabMode = 'spells' | 'abilities';
                       <span class="card-type">{{ sp.type_cast }}</span>
                     </div>
                     <div class="card-details">
-                      @if (sp.school) { <span class="tag">{{ sp.school }}</span> }
+                      @if (sp.school) { <span class="tag" [style.color]="schoolColor(sp.school)" [style.borderColor]="schoolColor(sp.school)">{{ schoolLabel(sp.school) }}</span> }
                       @if (sp.element) { <span class="tag element">{{ sp.element }}</span> }
                       <span class="tag cost">{{ sp.mana_cost }} mana</span>
                       <span class="tag level">Nvl {{ sp.level }}</span>
@@ -181,7 +196,7 @@ type TabMode = 'spells' | 'abilities';
                       <span class="card-type">{{ ab.ability_type }}</span>
                     </div>
                     <div class="card-details">
-                      @if (ab.school) { <span class="tag">{{ ab.school }}</span> }
+                      @if (ab.school) { <span class="tag" [style.color]="schoolColor(ab.school)" [style.borderColor]="schoolColor(ab.school)">{{ schoolLabel(ab.school) }}</span> }
                       @if (ab.element) { <span class="tag element">{{ ab.element }}</span> }
                       @if (ab.cost_type !== 'none') { <span class="tag cost">{{ ab.cost_amount }} {{ ab.cost_type }}</span> }
                       <span class="tag level">Nvl {{ ab.level }}</span>
@@ -271,6 +286,7 @@ export class CompendiumComponent {
   private readonly fb = inject(FormBuilder);
 
   readonly mode = signal<TabMode>('spells');
+  readonly schools = MAGIC_SCHOOLS;
   readonly showSpellForm = signal(false);
   readonly showAbilityForm = signal(false);
   readonly editingId = signal<string | null>(null);
@@ -354,7 +370,7 @@ export class CompendiumComponent {
     const data: Partial<SpellCatalog> = {
       name: v.name!, mana_cost: v.mana_cost ?? 0, description: v.description ?? '',
       image_url: v.image_url ?? '', type_cast: (v.type_cast as SpellCatalog['type_cast']) ?? 'conjuracao',
-      school: v.school ?? '', element: v.element ?? '', requirement: v.requirement ?? '',
+      school: (v.school as MagicSchool) ?? 'Evocacao', element: v.element ?? '', requirement: v.requirement ?? '',
       target_type: v.target_type ?? 'single', level: v.level ?? 1,
       is_visible: v.is_visible ?? true,
       effect: { type: 'custom', formula: v.effectFormula ?? '' },
@@ -373,7 +389,7 @@ export class CompendiumComponent {
       description: v.description ?? '', image_url: v.imageUrl ?? '',
       cost_type: (v.costType as AbilityCatalog['cost_type']) ?? 'none',
       cost_amount: v.costAmount ?? 0,
-      school: v.school ?? '', element: v.element ?? '', requirement: v.requirement ?? '',
+      school: (v.school as MagicSchool) ?? 'Evocacao', element: v.element ?? '', requirement: v.requirement ?? '',
       target_type: v.targetType ?? 'self', level: v.level ?? 1,
       is_visible: v.isVisible ?? true,
       effect: { type: 'custom', formula: v.effectFormula ?? '' },
@@ -382,5 +398,13 @@ export class CompendiumComponent {
     if (id) await this.catalogService.updateAbility(id, data);
     else await this.catalogService.createAbility(data);
     this.showAbilityForm.set(false);
+  }
+
+  schoolColor(school: string): string {
+    return this.schools.find(s => s.value === school)?.color ?? '#6b7084';
+  }
+
+  schoolLabel(school: string): string {
+    return this.schools.find(s => s.value === school)?.label ?? school;
   }
 }

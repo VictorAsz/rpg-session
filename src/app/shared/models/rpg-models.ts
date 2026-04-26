@@ -48,6 +48,19 @@ export interface Skill extends BaseEntity {
   bonus: number;
 }
 
+// Shared magic school type
+export type MagicSchool = 'Evocacao' | 'Convocacao' | 'Encantamento' | 'Transmutacao' | 'Ilusao' | 'Divinacao' | 'Abjuracao';
+
+export const MAGIC_SCHOOLS: { value: MagicSchool; label: string; color: string }[] = [
+  { value: 'Evocacao', label: 'Evocação', color: '#ef5350' },
+  { value: 'Convocacao', label: 'Convocação', color: '#ffca28' },
+  { value: 'Encantamento', label: 'Encantamento', color: '#f48fb1' },
+  { value: 'Transmutacao', label: 'Transmutação', color: '#ff9800' },
+  { value: 'Ilusao', label: 'Ilusão', color: '#ce93d8' },
+  { value: 'Divinacao', label: 'Divinação', color: '#42a5f5' },
+  { value: 'Abjuracao', label: 'Abjuração', color: '#eeeeee' },
+];
+
 // Shared effect type
 export interface EffectFormula {
   type: 'damage' | 'heal' | 'buff' | 'debuff' | 'modify_attribute' | 'custom';
@@ -110,7 +123,7 @@ export interface SpellCatalog extends BaseEntity {
   image_url: string;
   mana_cost: number;
   type_cast: 'ritual' | 'truque' | 'conjuracao' | 'invocacao' | 'encantamento';
-  school: string;
+  school: MagicSchool;
   element: string;
   requirement: string;
   target_type: string;
@@ -132,7 +145,7 @@ export interface AbilityCatalog extends BaseEntity {
   cost_type: 'mana' | 'hp' | 'none';
   cost_amount: number;
   ability_type: 'passiva' | 'ativa' | 'reacao';
-  school: string;
+  school: MagicSchool;
   element: string;
   requirement: string;
   target_type: string;
@@ -162,7 +175,7 @@ export interface SpellCatalog extends BaseEntity {
   image_url: string;
   mana_cost: number;
   type: 'spell' | 'ability';
-  school: string;
+  school: MagicSchool;
   element: string;
   requirement: string;
   target_type: string;

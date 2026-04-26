@@ -5,6 +5,7 @@ export type {
   User,
   Character,
   EffectFormula,
+  MagicSchool,
   Skill,
   Item,
   Ability,
@@ -26,6 +27,8 @@ export type {
   ChatMessage,
   Document,
 } from './rpg-models';
+
+export { MAGIC_SCHOOLS } from './rpg-models';
 
 export type {
   CharacterSheet,

@@ -23,7 +23,8 @@ CREATE TABLE spells_catalog (
   mana_cost     INT NOT NULL DEFAULT 0,
   type_cast     TEXT NOT NULL DEFAULT 'conjuracao'
                 CHECK (type_cast IN ('ritual','truque','conjuracao','invocacao','encantamento')),
-  school        TEXT NOT NULL DEFAULT '',
+  school        TEXT NOT NULL DEFAULT 'Evocacao'
+                CHECK (school IN ('Evocacao','Convocacao','Encantamento','Transmutacao','Ilusao','Divinacao','Abjuracao')),
   element       TEXT NOT NULL DEFAULT '',
   requirement   TEXT NOT NULL DEFAULT '',
   target_type   TEXT NOT NULL DEFAULT 'single'
@@ -45,7 +46,8 @@ CREATE TABLE abilities_catalog (
   cost_amount   INT NOT NULL DEFAULT 0,
   ability_type  TEXT NOT NULL DEFAULT 'ativa'
                 CHECK (ability_type IN ('passiva','ativa','reacao')),
-  school        TEXT NOT NULL DEFAULT '',
+  school        TEXT NOT NULL DEFAULT 'Evocacao'
+                CHECK (school IN ('Evocacao','Convocacao','Encantamento','Transmutacao','Ilusao','Divinacao','Abjuracao')),
   element       TEXT NOT NULL DEFAULT '',
   requirement   TEXT NOT NULL DEFAULT '',
   target_type   TEXT NOT NULL DEFAULT 'self'

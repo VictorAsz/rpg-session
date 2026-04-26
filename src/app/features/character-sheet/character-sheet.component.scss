@@ -1,0 +1,349 @@
+:host {
+  display: block;
+  height: 100dvh;
+  background: #1a1a2e;
+  color: #e0e0e0;
+  overflow-y: auto;
+}
+
+.sheet-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+.sheet-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+
+  h1 {
+    margin: 0;
+    font-size: 1.75rem;
+    color: #e94560;
+    flex: 1;
+  }
+}
+
+.back-link {
+  color: #a0a8c0;
+  text-decoration: none;
+  font-size: 0.875rem;
+  &:hover { color: #e94560; }
+}
+
+.remote-warning {
+  background: #ff9800;
+  color: #000;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  flex-basis: 100%;
+}
+
+// ── Tabs ──────────────────────────────────────────────────────────────
+
+.tabs {
+  display: flex;
+  gap: 0.25rem;
+  margin-bottom: 1rem;
+  border-bottom: 2px solid #0f3460;
+}
+
+.tab {
+  background: none;
+  border: none;
+  color: #a0a8c0;
+  padding: 0.6rem 1rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: color 0.2s, border-color 0.2s;
+
+  &:hover { color: #e0e0e0; }
+  &.active {
+    color: #e94560;
+    border-bottom-color: #e94560;
+  }
+}
+
+.badge {
+  background: #e94560;
+  color: #fff;
+  font-size: 0.65rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 8px;
+  margin-left: 0.3rem;
+}
+
+.tab-content {
+  padding: 0.5rem 0;
+}
+
+// ── Cards ─────────────────────────────────────────────────────────────
+
+.card {
+  background: #16213e;
+  border: 1px solid #0f3460;
+  border-radius: 8px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+
+  h2 {
+    margin: 0 0 1rem;
+    font-size: 1.1rem;
+    color: #e94560;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+}
+
+// ── Forms ─────────────────────────────────────────────────────────────
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.8rem;
+  color: #a0a8c0;
+}
+
+input, textarea, select {
+  padding: 0.5rem;
+  border: 1px solid #0f3460;
+  border-radius: 4px;
+  background: #1a1a2e;
+  color: #e0e0e0;
+  font-size: 0.875rem;
+
+  &:focus {
+    outline: none;
+    border-color: #e94560;
+  }
+
+  &[readonly] {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: #111122;
+  }
+}
+
+textarea { resize: vertical; }
+
+.attributes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.attr-pair {
+  display: flex;
+  gap: 0.5rem;
+  label { flex: 1; }
+}
+
+// ── Buttons ───────────────────────────────────────────────────────────
+
+button {
+  padding: 0.5rem 0.9rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: background 0.2s;
+}
+
+.btn-small {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  background: #0f3460;
+  color: #a0a8c0;
+  &:hover { background: #1a4a7a; color: #e0e0e0; }
+}
+
+.btn-danger {
+  background: #3d1010;
+  color: #e94560;
+  &:hover { background: #5a1a1a; }
+}
+
+.btn-active {
+  background: #0d4d0d;
+  color: #4caf50;
+  &:hover { background: #165a16; }
+}
+
+// ── Equipment ─────────────────────────────────────────────────────────
+
+.equipment-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 0.5rem;
+}
+
+.equipment-slot {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem;
+  border: 1px solid #0f3460;
+  border-radius: 4px;
+}
+
+.slot-label {
+  font-size: 0.75rem;
+  color: #a0a8c0;
+  width: 90px;
+  flex-shrink: 0;
+}
+
+.slot-item {
+  flex: 1;
+  font-size: 0.825rem;
+}
+
+.slot-select {
+  width: 100px;
+  font-size: 0.75rem;
+  padding: 0.25rem;
+}
+
+// ── Lists ─────────────────────────────────────────────────────────────
+
+.list-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem;
+  border-bottom: 1px solid #0f3460;
+
+  &:last-child { border-bottom: none; }
+}
+
+.list-row-vertical {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.list-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.list-name {
+  flex: 1;
+  small { color: #a0a8c0; font-size: 0.75rem; }
+}
+
+.list-desc {
+  margin: 0.3rem 0 0;
+  font-size: 0.8rem;
+  color: #a0a8c0;
+}
+
+.qty-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.qty {
+  min-width: 24px;
+  text-align: center;
+  font-size: 0.875rem;
+}
+
+.actions {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.mana-cost {
+  font-size: 0.75rem;
+  color: #6a9fd8;
+  margin-left: auto;
+}
+
+.buff-duration {
+  font-size: 0.75rem;
+  color: #8a8a8a;
+  margin-left: auto;
+}
+
+.buff-icon {
+  font-size: 0.7rem;
+  margin-right: 0.25rem;
+}
+
+.debuff {
+  border-left: 3px solid #e94560;
+  .buff-icon { color: #e94560; }
+}
+
+.passive {
+  border-left: 3px solid #ffc107;
+  .buff-icon { color: #ffc107; }
+}
+
+.buff:not(.debuff):not(.passive) {
+  border-left: 3px solid #4caf50;
+  .buff-icon { color: #4caf50; }
+}
+
+// ── Inline form ───────────────────────────────────────────────────────
+
+.inline-form {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+
+  input { flex: 1; min-width: 100px; }
+  button { white-space: nowrap; }
+}
+
+// ── Empty ─────────────────────────────────────────────────────────────
+
+.empty {
+  color: #555;
+  font-style: italic;
+  text-align: center;
+  padding: 1rem;
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────
+
+.saving-toast {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  background: #0f3460;
+  color: #a0a8c0;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+// ── Responsive ────────────────────────────────────────────────────────
+
+@media (max-width: 600px) {
+  .sheet-container { padding: 0.75rem; }
+  .tabs { overflow-x: auto; }
+  .form-row { grid-template-columns: 1fr; }
+}

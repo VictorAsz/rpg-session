@@ -7,8 +7,6 @@ export abstract class Store<TState> {
   protected readonly state$: BehaviorSubject<TState>;
   protected readonly destroy$ = new Subject<void>();
 
-
-
   constructor(initialState: TState) {
     this.state$ = new BehaviorSubject<TState>(initialState);
   }

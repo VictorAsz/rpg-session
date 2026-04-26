@@ -1,0 +1,386 @@
+<div class="sheet-container">
+  <div class="sheet-header">
+    <a class="back-link" routerLink="/table">Voltar</a>
+    <h1>{{ form.controls.name.value || 'Personagem' }}</h1>
+    @if (remoteChanged()) {
+      <button class="remote-warning" (click)="acceptRemoteChanges()">
+        Ficha atualizada remotamente — clique para atualizar
+      </button>
+    }
+  </div>
+
+  <!-- Tabs -->
+  <nav class="tabs">
+    @for (tab of tabList; track tab) {
+      <button
+        class="tab"
+        [class.active]="activeTab() === tab"
+        (click)="activeTab.set(tab)"
+      >
+        {{ tabLabel(tab) }}
+        @if (tab === 'buffs' && (sheet()?.buffs?.length ?? 0) > 0) {
+          <span class="badge">{{ sheet()?.buffs?.length }}</span>
+        }
+      </button>
+    }
+  </nav>
+
+  <!-- ================================================================= -->
+  <!-- ATTRIBUTES TAB                                                     -->
+  <!-- ================================================================= -->
+  @if (activeTab() === 'attributes') {
+    <section class="tab-content" [formGroup]="form">
+      <div class="card">
+        <h2>Informações Básicas</h2>
+        <div class="form-row">
+          <label>
+            Nome
+            <input type="text" formControlName="name" [readonly]="!canEditAttributes()" />
+          </label>
+          <label>
+            Raça
+            <input type="text" formControlName="race" [readonly]="!canEditAttributes()" />
+          </label>
+        </div>
+
+        <h2>Atributos de Combate</h2>
+        <div class="attributes-grid">
+          @for (attr of [
+            { key: 'hp', label: 'HP', maxKey: 'hp_max', maxLabel: 'HP Max' },
+            { key: 'magic', label: 'Magia', maxKey: 'magic_max', maxLabel: 'Magia Max' },
+            { key: 'mana', label: 'Mana', maxKey: 'mana_max', maxLabel: 'Mana Max' },
+          ]; track attr.key) {
+            <div class="attr-pair">
+              <label>
+                {{ attr.label }}
+                <input
+                  type="number"
+                  [formControlName]="attr.key"
+                  [readonly]="!canEdit()"
+                  min="0"
+                />
+              </label>
+              <label>
+                {{ attr.maxLabel }}
+                <input
+                  type="number"
+                  [formControlName]="attr.maxKey"
+                  [readonly]="!canEditAttributes()"
+                  min="0"
+                />
+              </label>
+            </div>
+          }
+        </div>
+
+        <h2>Atributos Base</h2>
+        <div class="attributes-grid">
+          @for (attr of [
+            { key: 'strength', label: 'Força' },
+            { key: 'dexterity', label: 'Destreza' },
+            { key: 'constitution', label: 'Constituição' },
+            { key: 'intelligence', label: 'Inteligência' },
+            { key: 'wisdom', label: 'Sabedoria' },
+            { key: 'inspiration', label: 'Inspiração' },
+            { key: 'xp', label: 'XP' },
+          ]; track attr.key) {
+            <label>
+              {{ attr.label }}
+              <input
+                type="number"
+                [formControlName]="attr.key"
+                [readonly]="!canEditAttributes()"
+                min="0"
+              />
+            </label>
+          }
+        </div>
+      </div>
+    </section>
+  }
+
+  <!-- ================================================================= -->
+  <!-- INVENTORY TAB                                                      -->
+  <!-- ================================================================= -->
+  @if (activeTab() === 'inventory') {
+    <section class="tab-content">
+      <!-- Equipment Slots -->
+      <div class="card">
+        <h2>Equipamentos</h2>
+        <div class="equipment-grid">
+          @for (slot of equipmentSlots; track slot.key) {
+            @let equipped = getEquippedForSlot(slot.key);
+            <div class="equipment-slot">
+              <span class="slot-label">{{ slot.label }}</span>
+              <span class="slot-item">{{ getItemName(equipped?.item_id ?? null) }}</span>
+              @if (canEdit()) {
+                <select
+                  (change)="equipToSlot($any($event.target).value, slot.key); $any($event.target).value = ''"
+                  class="slot-select"
+                >
+                  <option value="">— Nenhum —</option>
+                  @for (item of sheet()?.items ?? []; track item.id) {
+                    <option [value]="item.id">{{ item.name }}</option>
+                  }
+                </select>
+              }
+              @if (equipped && canEdit()) {
+                <button class="btn-danger btn-small" (click)="unequipSlot(equipped)">Desequipar</button>
+              }
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Inventory List -->
+      <div class="card">
+        <h2>
+          Itens no Inventário
+          @if (canEdit()) {
+            <button class="btn-small" (click)="showAddItem.set(true)">+ Novo</button>
+          }
+        </h2>
+
+        @if (showAddItem()) {
+          <form class="inline-form" #itemForm (submit)="addItem(itemName.value, itemDesc.value, +itemQty.value); itemForm.reset()">
+            <input #itemName placeholder="Nome" required />
+            <input #itemDesc placeholder="Descrição" />
+            <input #itemQty type="number" value="1" min="1" style="width:60px" />
+            <button type="submit">Adicionar</button>
+            <button type="button" class="btn-small" (click)="showAddItem.set(false)">Cancelar</button>
+          </form>
+        }
+
+        @if ((sheet()?.items?.length ?? 0) === 0) {
+          <p class="empty">Nenhum item.</p>
+        }
+        @for (item of sheet()?.items ?? []; track item.id) {
+          <div class="list-row">
+            <span class="list-name">{{ item.name }} @if (item.description) { <small>{{ item.description }}</small> }</span>
+            @if (canEdit()) {
+              <span class="qty-controls">
+                <button class="btn-small" (click)="updateItemQty(item, -1)">−</button>
+                <span class="qty">{{ item.quantity }}</span>
+                <button class="btn-small" (click)="updateItemQty(item, 1)">+</button>
+                <button class="btn-danger btn-small" (click)="deleteItem(item)">Remover</button>
+              </span>
+            }
+          </div>
+        }
+      </div>
+    </section>
+  }
+
+  <!-- ================================================================= -->
+  <!-- SKILLS TAB                                                         -->
+  <!-- ================================================================= -->
+  @if (activeTab() === 'skills') {
+    <section class="tab-content">
+      <div class="card">
+        <h2>
+          Perícias
+          @if (canEdit()) {
+            <button class="btn-small" (click)="showAddSkill.set(true)">+ Nova</button>
+          }
+        </h2>
+
+        @if (showAddSkill()) {
+          <form class="inline-form" #skillForm (submit)="addSkill(skillName.value, +skillBonus.value); skillForm.reset()">
+            <input #skillName placeholder="Nome" required />
+            <input #skillBonus type="number" value="0" style="width:60px" />
+            <button type="submit">Adicionar</button>
+            <button type="button" class="btn-small" (click)="showAddSkill.set(false)">Cancelar</button>
+          </form>
+        }
+
+        @if ((sheet()?.skills?.length ?? 0) === 0) {
+          <p class="empty">Nenhuma perícia.</p>
+        }
+        @for (skill of sheet()?.skills ?? []; track skill.id) {
+          <div class="list-row">
+            <span class="list-name">{{ skill.name }} @if (skill.bonus) { <small>+{{ skill.bonus }}</small> }</span>
+            @if (canEdit()) {
+              <span class="actions">
+                <button
+                  class="btn-small"
+                  [class.btn-active]="skill.proficient"
+                  (click)="toggleSkill(skill)"
+                >
+                  {{ skill.proficient ? 'Treinado' : 'Não treinado' }}
+                </button>
+                <button class="btn-danger btn-small" (click)="deleteSkill(skill)">Remover</button>
+              </span>
+            }
+          </div>
+        }
+      </div>
+    </section>
+  }
+
+  <!-- ================================================================= -->
+  <!-- ABILITIES TAB                                                      -->
+  <!-- ================================================================= -->
+  @if (activeTab() === 'abilities') {
+    <section class="tab-content">
+      <div class="card">
+        <h2>
+          Habilidades
+          @if (canEdit()) {
+            <button class="btn-small" (click)="showAddAbility.set(true)">+ Nova</button>
+          }
+        </h2>
+
+        @if (showAddAbility()) {
+          <form class="inline-form" #abilityForm (submit)="addAbility(abilityName.value, abilityDesc.value); abilityForm.reset()">
+            <input #abilityName placeholder="Nome" required />
+            <input #abilityDesc placeholder="Descrição" />
+            <button type="submit">Adicionar</button>
+            <button type="button" class="btn-small" (click)="showAddAbility.set(false)">Cancelar</button>
+          </form>
+        }
+
+        @if ((sheet()?.abilities?.length ?? 0) === 0) {
+          <p class="empty">Nenhuma habilidade.</p>
+        }
+        @for (ability of sheet()?.abilities ?? []; track ability.id) {
+          <div class="list-row list-row-vertical">
+            <div class="list-header">
+              <strong>{{ ability.name }}</strong>
+              @if (canEdit()) {
+                <button class="btn-danger btn-small" (click)="deleteAbility(ability)">Remover</button>
+              }
+            </div>
+            @if (ability.description) {
+              <p class="list-desc">{{ ability.description }}</p>
+            }
+          </div>
+        }
+      </div>
+    </section>
+  }
+
+  <!-- ================================================================= -->
+  <!-- SPELLS TAB                                                         -->
+  <!-- ================================================================= -->
+  @if (activeTab() === 'spells') {
+    <section class="tab-content">
+      <div class="card">
+        <h2>
+          Magias
+          @if (canEdit()) {
+            <button class="btn-small" (click)="showAddSpell.set(true)">+ Nova</button>
+          }
+        </h2>
+
+        @if (showAddSpell()) {
+          <form class="inline-form" #spellForm (submit)="addSpell(spellName.value, spellDesc.value, +spellCost.value); spellForm.reset()">
+            <input #spellName placeholder="Nome" required />
+            <input #spellDesc placeholder="Descrição" />
+            <input #spellCost type="number" value="0" min="0" style="width:60px" placeholder="Mana" />
+            <button type="submit">Adicionar</button>
+            <button type="button" class="btn-small" (click)="showAddSpell.set(false)">Cancelar</button>
+          </form>
+        }
+
+        @if ((sheet()?.spells?.length ?? 0) === 0) {
+          <p class="empty">Nenhuma magia.</p>
+        }
+        @for (spell of sheet()?.spells ?? []; track spell.id) {
+          <div class="list-row list-row-vertical">
+            <div class="list-header">
+              <strong>{{ spell.name }}</strong>
+              <span class="mana-cost">{{ spell.mana_cost }} mana</span>
+              @if (canEdit()) {
+                <button class="btn-danger btn-small" (click)="deleteSpell(spell)">Remover</button>
+              }
+            </div>
+            @if (spell.description) {
+              <p class="list-desc">{{ spell.description }}</p>
+            }
+          </div>
+        }
+      </div>
+    </section>
+  }
+
+  <!-- ================================================================= -->
+  <!-- BUFFS TAB                                                          -->
+  <!-- ================================================================= -->
+  @if (activeTab() === 'buffs') {
+    <section class="tab-content">
+      <div class="card">
+        <h2>
+          Buffs & Debuffs
+          @if (canEdit()) {
+            <button class="btn-small" (click)="showAddBuff.set(true)">+ Novo</button>
+          }
+        </h2>
+
+        @if (showAddBuff()) {
+          <form class="inline-form" #buffForm (submit)="addBuff(buffName.value, buffDesc.value, +buffDur.value); buffForm.reset()">
+            <input #buffName placeholder="Nome" required />
+            <input #buffDesc placeholder="Descrição" />
+            <input #buffDur type="number" value="0" style="width:60px" placeholder="Duração (-1=perm)" />
+            <button type="submit">Adicionar</button>
+            <button type="button" class="btn-small" (click)="showAddBuff.set(false)">Cancelar</button>
+          </form>
+        }
+
+        @if ((sheet()?.buffs?.length ?? 0) === 0) {
+          <p class="empty">Nenhum buff ou debuff ativo.</p>
+        }
+        @for (buff of sheet()?.buffs ?? []; track buff.id) {
+          <div class="list-row list-row-vertical" [class.debuff]="buff.type === 'debuff'" [class.passive]="buff.type === 'passive'">
+            <div class="list-header">
+              <strong>
+                <span class="buff-icon">{{ buff.type === 'debuff' ? '▼' : buff.type === 'passive' ? '◆' : '▲' }}</span>
+                {{ buff.name }}
+              </strong>
+              <span class="buff-duration">{{ buff.duration === -1 ? 'Permanente' : buff.duration + ' rodadas' }}</span>
+              @if (canEdit()) {
+                <button class="btn-danger btn-small" (click)="deleteBuff(buff)">Remover</button>
+              }
+            </div>
+            @if (buff.description) {
+              <p class="list-desc">{{ buff.description }}</p>
+            }
+          </div>
+        }
+      </div>
+    </section>
+  }
+
+  <!-- ================================================================= -->
+  <!-- NOTES TAB                                                          -->
+  <!-- ================================================================= -->
+  @if (activeTab() === 'notes') {
+    <section class="tab-content">
+      <div class="card">
+        <h2>Notas</h2>
+        <label>
+          <textarea
+            formControlName="notes"
+            rows="12"
+            placeholder="Anotações do personagem..."
+            [readonly]="!canEdit()"
+          ></textarea>
+        </label>
+
+        <h2>Biografia</h2>
+        <label>
+          <textarea
+            formControlName="biography"
+            rows="8"
+            placeholder="História do personagem..."
+            [readonly]="!canEditAttributes()"
+          ></textarea>
+        </label>
+      </div>
+    </section>
+  }
+
+  <!-- Saving indicator -->
+  @if (saving()) {
+    <div class="saving-toast">Salvando...</div>
+  }
+</div>

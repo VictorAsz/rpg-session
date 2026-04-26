@@ -25,16 +25,8 @@ export class CharacterStore extends Store<CharacterState> {
     super(INITIAL_STATE);
   }
 
-  get initialState(): CharacterState {
-    return {
-      characters: [],
-      sheets: {},
-      isLoading: false,
-      error: null,
-    };
-  }
-
   readonly characters$: Observable<Character[]> = this.select((s) => s.characters);
+
   readonly sheets$: Observable<Record<string, CharacterSheet>> = this.select((s) => s.sheets);
   readonly isLoading$: Observable<boolean> = this.select((s) => s.isLoading);
   readonly error$: Observable<string | null> = this.select((s) => s.error);

@@ -18,15 +18,6 @@ export class DiceStore extends Store<DiceState> {
     super(INITIAL_STATE);
   }
 
-  get initialState(): DiceState {
-    return {
-      rolls: [],
-      maxRolls: 200,
-      isLoading: false,
-      error: null,
-    };
-  }
-
   readonly rolls$: Observable<DiceRoll[]> = this.select((s) => s.rolls);
   readonly latestRoll$: Observable<DiceRoll | undefined> = this.select(
     (s) => s.rolls[s.rolls.length - 1],

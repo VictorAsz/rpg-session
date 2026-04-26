@@ -1,386 +1,375 @@
-<div class="sheet-container">
-  <div class="sheet-header">
-    <a class="back-link" routerLink="/table">Voltar</a>
-    <h1>{{ form.controls.name.value || 'Personagem' }}</h1>
+<div class="layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <a class="sidebar-back" routerLink="/table">&#8592; Mesa</a>
+    <div class="sidebar-char">
+      <div class="char-avatar">
+        {{ sheet()?.character?.name?.charAt(0)?.toUpperCase() || '?' }}
+      </div>
+      <h2 class="char-name">{{ sheet()?.character?.name || 'Carregando...' }}</h2>
+      <p class="char-race">{{ sheet()?.character?.race || '—' }}</p>
+      <span class="char-xp">XP {{ sheet()?.character?.xp || 0 }}</span>
+    </div>
+
+    <div class="sidebar-bars">
+      <div class="bar-group">
+        <div class="bar-label">HP</div>
+        <div class="bar-track">
+          <div class="bar-fill hp" [style.width.%]="hpPercent()"></div>
+        </div>
+        <div class="bar-value">{{ sheet()?.character?.hp || 0 }}/{{ sheet()?.character?.hp_max || 0 }}</div>
+      </div>
+      <div class="bar-group">
+        <div class="bar-label">Mana</div>
+        <div class="bar-track">
+          <div class="bar-fill mana" [style.width.%]="manaPercent()"></div>
+        </div>
+        <div class="bar-value">{{ sheet()?.character?.mana || 0 }}/{{ sheet()?.character?.mana_max || 0 }}</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      @for (t of tabs; track t) {
+        <button
+          class="nav-item"
+          [class.active]="activeTab() === t"
+          (click)="activeTab.set(t)"
+        >
+          {{ tabLabel(t) }}
+          @if (t === 'buffs' && (sheet()?.buffs?.length ?? 0) > 0) {
+            <span class="nav-badge">{{ sheet()?.buffs?.length }}</span>
+          }
+        </button>
+      }
+    </nav>
+
+    <div class="sidebar-stats">
+      @for (s of stats; track s.key) {
+        <div class="mini-stat">
+          <span class="mini-label">{{ s.label }}</span>
+          <span class="mini-value">{{ sheet()?.character?.[s.key] || 0 }}</span>
+          <span class="mini-mod">({{ statMod(sheet()?.character?.[s.key] || 0) }})</span>
+        </div>
+      }
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main" [formGroup]="form">
     @if (remoteChanged()) {
-      <button class="remote-warning" (click)="acceptRemoteChanges()">
-        Ficha atualizada remotamente — clique para atualizar
-      </button>
+      <div class="remote-banner">
+        <span>Ficha atualizada remotamente</span>
+        <button (click)="acceptRemoteChanges()">Atualizar</button>
+      </div>
     }
-  </div>
 
-  <!-- Tabs -->
-  <nav class="tabs">
-    @for (tab of tabList; track tab) {
-      <button
-        class="tab"
-        [class.active]="activeTab() === tab"
-        (click)="activeTab.set(tab)"
-      >
-        {{ tabLabel(tab) }}
-        @if (tab === 'buffs' && (sheet()?.buffs?.length ?? 0) > 0) {
-          <span class="badge">{{ sheet()?.buffs?.length }}</span>
-        }
-      </button>
-    }
-  </nav>
-
-  <!-- ================================================================= -->
-  <!-- ATTRIBUTES TAB                                                     -->
-  <!-- ================================================================= -->
-  @if (activeTab() === 'attributes') {
-    <section class="tab-content" [formGroup]="form">
-      <div class="card">
-        <h2>Informações Básicas</h2>
-        <div class="form-row">
+    <!-- STATS TAB -->
+    @if (activeTab() === 'stats') {
+      <section class="section">
+        <h3>Informações</h3>
+        <div class="grid-2">
           <label>
             Nome
-            <input type="text" formControlName="name" [readonly]="!canEditAttributes()" />
+            <input type="text" formControlName="name" [readonly]="!auth.isMaster()" />
           </label>
           <label>
             Raça
-            <input type="text" formControlName="race" [readonly]="!canEditAttributes()" />
+            <input type="text" formControlName="race" [readonly]="!auth.isMaster()" />
           </label>
         </div>
 
-        <h2>Atributos de Combate</h2>
-        <div class="attributes-grid">
-          @for (attr of [
-            { key: 'hp', label: 'HP', maxKey: 'hp_max', maxLabel: 'HP Max' },
-            { key: 'magic', label: 'Magia', maxKey: 'magic_max', maxLabel: 'Magia Max' },
-            { key: 'mana', label: 'Mana', maxKey: 'mana_max', maxLabel: 'Mana Max' },
-          ]; track attr.key) {
-            <div class="attr-pair">
-              <label>
-                {{ attr.label }}
-                <input
-                  type="number"
-                  [formControlName]="attr.key"
-                  [readonly]="!canEdit()"
-                  min="0"
-                />
-              </label>
-              <label>
-                {{ attr.maxLabel }}
-                <input
-                  type="number"
-                  [formControlName]="attr.maxKey"
-                  [readonly]="!canEditAttributes()"
-                  min="0"
-                />
-              </label>
-            </div>
-          }
+        <h3>Combate</h3>
+        <div class="grid-3">
+          <label>
+            HP
+            <input type="number" formControlName="hp" min="0" />
+          </label>
+          <label>
+            HP Max
+            <input type="number" formControlName="hp_max" min="0" [readonly]="!auth.isMaster()" />
+          </label>
+          <label></label>
+          <label>
+            Magia
+            <input type="number" formControlName="magic" min="0" />
+          </label>
+          <label>
+            Magia Max
+            <input type="number" formControlName="magic_max" min="0" [readonly]="!auth.isMaster()" />
+          </label>
+          <label></label>
+          <label>
+            Mana
+            <input type="number" formControlName="mana" min="0" />
+          </label>
+          <label>
+            Mana Max
+            <input type="number" formControlName="mana_max" min="0" [readonly]="!auth.isMaster()" />
+          </label>
+          <label>
+            XP
+            <input type="number" formControlName="xp" min="0" [readonly]="!auth.isMaster()" />
+          </label>
         </div>
 
-        <h2>Atributos Base</h2>
-        <div class="attributes-grid">
-          @for (attr of [
-            { key: 'strength', label: 'Força' },
-            { key: 'dexterity', label: 'Destreza' },
-            { key: 'constitution', label: 'Constituição' },
-            { key: 'intelligence', label: 'Inteligência' },
-            { key: 'wisdom', label: 'Sabedoria' },
-            { key: 'inspiration', label: 'Inspiração' },
-            { key: 'xp', label: 'XP' },
-          ]; track attr.key) {
+        <h3>Atributos</h3>
+        <div class="grid-3">
+          @for (s of stats; track s.key) {
             <label>
-              {{ attr.label }}
-              <input
-                type="number"
-                [formControlName]="attr.key"
-                [readonly]="!canEditAttributes()"
-                min="0"
-              />
+              {{ s.label }}
+              <input type="number" [formControlName]="s.key" min="0" [readonly]="!auth.isMaster()" />
             </label>
           }
         </div>
-      </div>
-    </section>
-  }
+      </section>
+    }
 
-  <!-- ================================================================= -->
-  <!-- INVENTORY TAB                                                      -->
-  <!-- ================================================================= -->
-  @if (activeTab() === 'inventory') {
-    <section class="tab-content">
-      <!-- Equipment Slots -->
-      <div class="card">
-        <h2>Equipamentos</h2>
+    <!-- INVENTORY TAB -->
+    @if (activeTab() === 'inventory') {
+      <section class="section">
+        <div class="section-header">
+          <h3>Equipamentos</h3>
+        </div>
         <div class="equipment-grid">
           @for (slot of equipmentSlots; track slot.key) {
-            @let equipped = getEquippedForSlot(slot.key);
-            <div class="equipment-slot">
-              <span class="slot-label">{{ slot.label }}</span>
-              <span class="slot-item">{{ getItemName(equipped?.item_id ?? null) }}</span>
-              @if (canEdit()) {
+            @let eq = getEquippedForSlot(slot.key);
+            <div class="equip-slot">
+              <span class="equip-icon" [innerHTML]="slot.icon"></span>
+              <div>
+                <span class="equip-label">{{ slot.label }}</span>
+                <span class="equip-item">{{ getItemName(eq?.item_id ?? null) }}</span>
+              </div>
+              @if (auth.isMaster()) {
                 <select
+                  class="equip-select"
                   (change)="equipToSlot($any($event.target).value, slot.key); $any($event.target).value = ''"
-                  class="slot-select"
                 >
-                  <option value="">— Nenhum —</option>
+                  <option value="">—</option>
                   @for (item of sheet()?.items ?? []; track item.id) {
                     <option [value]="item.id">{{ item.name }}</option>
                   }
                 </select>
-              }
-              @if (equipped && canEdit()) {
-                <button class="btn-danger btn-small" (click)="unequipSlot(equipped)">Desequipar</button>
+                @if (eq) {
+                  <button class="icon-btn danger" (click)="unequipSlot(eq)" title="Desequipar">&times;</button>
+                }
               }
             </div>
           }
         </div>
-      </div>
 
-      <!-- Inventory List -->
-      <div class="card">
-        <h2>
-          Itens no Inventário
-          @if (canEdit()) {
-            <button class="btn-small" (click)="showAddItem.set(true)">+ Novo</button>
+        <div class="section-header">
+          <h3>Inventário</h3>
+          @if (auth.isMaster()) {
+            <button class="btn-sm" (click)="showAddItem.set(!showAddItem())">+ Item</button>
           }
-        </h2>
+        </div>
 
         @if (showAddItem()) {
-          <form class="inline-form" #itemForm (submit)="addItem(itemName.value, itemDesc.value, +itemQty.value); itemForm.reset()">
-            <input #itemName placeholder="Nome" required />
-            <input #itemDesc placeholder="Descrição" />
-            <input #itemQty type="number" value="1" min="1" style="width:60px" />
-            <button type="submit">Adicionar</button>
-            <button type="button" class="btn-small" (click)="showAddItem.set(false)">Cancelar</button>
+          <form class="inline-add" #itemForm (submit)="addItem(iName.value, iDesc.value, +iQty.value); itemForm.reset()">
+            <input #iName placeholder="Nome" required />
+            <input #iDesc placeholder="Descrição" />
+            <input #iQty type="number" value="1" min="1" style="width:60px" />
+            <button type="submit" class="btn-sm primary">Adicionar</button>
           </form>
         }
 
         @if ((sheet()?.items?.length ?? 0) === 0) {
-          <p class="empty">Nenhum item.</p>
+          <p class="empty">Nenhum item</p>
         }
         @for (item of sheet()?.items ?? []; track item.id) {
-          <div class="list-row">
-            <span class="list-name">{{ item.name }} @if (item.description) { <small>{{ item.description }}</small> }</span>
-            @if (canEdit()) {
-              <span class="qty-controls">
-                <button class="btn-small" (click)="updateItemQty(item, -1)">−</button>
-                <span class="qty">{{ item.quantity }}</span>
-                <button class="btn-small" (click)="updateItemQty(item, 1)">+</button>
-                <button class="btn-danger btn-small" (click)="deleteItem(item)">Remover</button>
-              </span>
+          <div class="row">
+            <div class="row-info">
+              <strong>{{ item.name }}</strong>
+              @if (item.description) { <span class="muted">{{ item.description }}</span> }
+            </div>
+            @if (auth.isMaster()) {
+              <div class="row-actions">
+                <button class="btn-sm" (click)="updateItemQty(item, -1)">−</button>
+                <span>{{ item.quantity }}</span>
+                <button class="btn-sm" (click)="updateItemQty(item, 1)">+</button>
+                <button class="btn-sm danger" (click)="deleteItem(item)">&times;</button>
+              </div>
             }
           </div>
         }
-      </div>
-    </section>
-  }
+      </section>
+    }
 
-  <!-- ================================================================= -->
-  <!-- SKILLS TAB                                                         -->
-  <!-- ================================================================= -->
-  @if (activeTab() === 'skills') {
-    <section class="tab-content">
-      <div class="card">
-        <h2>
-          Perícias
-          @if (canEdit()) {
-            <button class="btn-small" (click)="showAddSkill.set(true)">+ Nova</button>
+    <!-- SKILLS TAB -->
+    @if (activeTab() === 'skills') {
+      <section class="section">
+        <div class="section-header">
+          <h3>Perícias</h3>
+          @if (auth.isMaster()) {
+            <button class="btn-sm" (click)="showAddSkill.set(!showAddSkill())">+ Perícia</button>
           }
-        </h2>
+        </div>
 
         @if (showAddSkill()) {
-          <form class="inline-form" #skillForm (submit)="addSkill(skillName.value, +skillBonus.value); skillForm.reset()">
-            <input #skillName placeholder="Nome" required />
-            <input #skillBonus type="number" value="0" style="width:60px" />
-            <button type="submit">Adicionar</button>
-            <button type="button" class="btn-small" (click)="showAddSkill.set(false)">Cancelar</button>
+          <form class="inline-add" #sf (submit)="addSkill(sName.value, +sBonus.value); sf.reset()">
+            <input #sName placeholder="Nome" required />
+            <input #sBonus type="number" value="0" style="width:60px" placeholder="Bônus" />
+            <button type="submit" class="btn-sm primary">Adicionar</button>
           </form>
         }
 
         @if ((sheet()?.skills?.length ?? 0) === 0) {
-          <p class="empty">Nenhuma perícia.</p>
+          <p class="empty">Nenhuma perícia</p>
         }
-        @for (skill of sheet()?.skills ?? []; track skill.id) {
-          <div class="list-row">
-            <span class="list-name">{{ skill.name }} @if (skill.bonus) { <small>+{{ skill.bonus }}</small> }</span>
-            @if (canEdit()) {
-              <span class="actions">
+        @for (sk of sheet()?.skills ?? []; track sk.id) {
+          <div class="row">
+            <div class="row-info">
+              <strong>{{ sk.name }}</strong>
+              @if (sk.bonus) { <span class="muted">+{{ sk.bonus }}</span> }
+            </div>
+            @if (auth.isMaster()) {
+              <div class="row-actions">
                 <button
-                  class="btn-small"
-                  [class.btn-active]="skill.proficient"
-                  (click)="toggleSkill(skill)"
+                  class="btn-sm"
+                  [class.toggle-on]="sk.proficient"
+                  (click)="toggleSkill(sk)"
                 >
-                  {{ skill.proficient ? 'Treinado' : 'Não treinado' }}
+                  {{ sk.proficient ? 'Treinado' : 'Não treinado' }}
                 </button>
-                <button class="btn-danger btn-small" (click)="deleteSkill(skill)">Remover</button>
-              </span>
+                <button class="btn-sm danger" (click)="deleteSkill(sk)">&times;</button>
+              </div>
             }
           </div>
         }
-      </div>
-    </section>
-  }
+      </section>
+    }
 
-  <!-- ================================================================= -->
-  <!-- ABILITIES TAB                                                      -->
-  <!-- ================================================================= -->
-  @if (activeTab() === 'abilities') {
-    <section class="tab-content">
-      <div class="card">
-        <h2>
-          Habilidades
-          @if (canEdit()) {
-            <button class="btn-small" (click)="showAddAbility.set(true)">+ Nova</button>
+    <!-- ABILITIES TAB -->
+    @if (activeTab() === 'abilities') {
+      <section class="section">
+        <div class="section-header">
+          <h3>Habilidades</h3>
+          @if (auth.isMaster()) {
+            <button class="btn-sm" (click)="showAddAbility.set(!showAddAbility())">+ Habilidade</button>
           }
-        </h2>
+        </div>
 
         @if (showAddAbility()) {
-          <form class="inline-form" #abilityForm (submit)="addAbility(abilityName.value, abilityDesc.value); abilityForm.reset()">
-            <input #abilityName placeholder="Nome" required />
-            <input #abilityDesc placeholder="Descrição" />
-            <button type="submit">Adicionar</button>
-            <button type="button" class="btn-small" (click)="showAddAbility.set(false)">Cancelar</button>
+          <form class="inline-add" #af (submit)="addAbility(aName.value, aDesc.value); af.reset()">
+            <input #aName placeholder="Nome" required />
+            <input #aDesc placeholder="Descrição" />
+            <button type="submit" class="btn-sm primary">Adicionar</button>
           </form>
         }
 
         @if ((sheet()?.abilities?.length ?? 0) === 0) {
-          <p class="empty">Nenhuma habilidade.</p>
+          <p class="empty">Nenhuma habilidade</p>
         }
-        @for (ability of sheet()?.abilities ?? []; track ability.id) {
-          <div class="list-row list-row-vertical">
-            <div class="list-header">
-              <strong>{{ ability.name }}</strong>
-              @if (canEdit()) {
-                <button class="btn-danger btn-small" (click)="deleteAbility(ability)">Remover</button>
+        @for (ab of sheet()?.abilities ?? []; track ab.id) {
+          <div class="card-sm">
+            <div class="card-sm-header">
+              <strong>{{ ab.name }}</strong>
+              @if (auth.isMaster()) {
+                <button class="icon-btn danger" (click)="deleteAbility(ab)">&times;</button>
               }
             </div>
-            @if (ability.description) {
-              <p class="list-desc">{{ ability.description }}</p>
+            @if (ab.description) {
+              <p class="muted card-sm-desc">{{ ab.description }}</p>
             }
           </div>
         }
-      </div>
-    </section>
-  }
+      </section>
+    }
 
-  <!-- ================================================================= -->
-  <!-- SPELLS TAB                                                         -->
-  <!-- ================================================================= -->
-  @if (activeTab() === 'spells') {
-    <section class="tab-content">
-      <div class="card">
-        <h2>
-          Magias
-          @if (canEdit()) {
-            <button class="btn-small" (click)="showAddSpell.set(true)">+ Nova</button>
+    <!-- SPELLS TAB -->
+    @if (activeTab() === 'spells') {
+      <section class="section">
+        <div class="section-header">
+          <h3>Magias</h3>
+          @if (auth.isMaster()) {
+            <button class="btn-sm" (click)="showAddSpell.set(!showAddSpell())">+ Magia</button>
           }
-        </h2>
+        </div>
 
         @if (showAddSpell()) {
-          <form class="inline-form" #spellForm (submit)="addSpell(spellName.value, spellDesc.value, +spellCost.value); spellForm.reset()">
-            <input #spellName placeholder="Nome" required />
-            <input #spellDesc placeholder="Descrição" />
-            <input #spellCost type="number" value="0" min="0" style="width:60px" placeholder="Mana" />
-            <button type="submit">Adicionar</button>
-            <button type="button" class="btn-small" (click)="showAddSpell.set(false)">Cancelar</button>
+          <form class="inline-add" #spf (submit)="addSpell(spName.value, spDesc.value, +spCost.value); spf.reset()">
+            <input #spName placeholder="Nome" required />
+            <input #spDesc placeholder="Descrição" />
+            <input #spCost type="number" value="0" min="0" style="width:60px" placeholder="Mana" />
+            <button type="submit" class="btn-sm primary">Adicionar</button>
           </form>
         }
 
         @if ((sheet()?.spells?.length ?? 0) === 0) {
-          <p class="empty">Nenhuma magia.</p>
+          <p class="empty">Nenhuma magia</p>
         }
-        @for (spell of sheet()?.spells ?? []; track spell.id) {
-          <div class="list-row list-row-vertical">
-            <div class="list-header">
-              <strong>{{ spell.name }}</strong>
-              <span class="mana-cost">{{ spell.mana_cost }} mana</span>
-              @if (canEdit()) {
-                <button class="btn-danger btn-small" (click)="deleteSpell(spell)">Remover</button>
+        @for (sp of sheet()?.spells ?? []; track sp.id) {
+          <div class="card-sm">
+            <div class="card-sm-header">
+              <strong>{{ sp.name }}</strong>
+              <span class="mana-tag">{{ sp.mana_cost }} mana</span>
+              @if (auth.isMaster()) {
+                <button class="icon-btn danger" (click)="deleteSpell(sp)">&times;</button>
               }
             </div>
-            @if (spell.description) {
-              <p class="list-desc">{{ spell.description }}</p>
+            @if (sp.description) {
+              <p class="muted card-sm-desc">{{ sp.description }}</p>
             }
           </div>
         }
-      </div>
-    </section>
-  }
+      </section>
+    }
 
-  <!-- ================================================================= -->
-  <!-- BUFFS TAB                                                          -->
-  <!-- ================================================================= -->
-  @if (activeTab() === 'buffs') {
-    <section class="tab-content">
-      <div class="card">
-        <h2>
-          Buffs & Debuffs
-          @if (canEdit()) {
-            <button class="btn-small" (click)="showAddBuff.set(true)">+ Novo</button>
+    <!-- BUFFS TAB -->
+    @if (activeTab() === 'buffs') {
+      <section class="section">
+        <div class="section-header">
+          <h3>Buffs & Debuffs</h3>
+          @if (auth.isMaster()) {
+            <button class="btn-sm" (click)="showAddBuff.set(!showAddBuff())">+ Efeito</button>
           }
-        </h2>
+        </div>
 
         @if (showAddBuff()) {
-          <form class="inline-form" #buffForm (submit)="addBuff(buffName.value, buffDesc.value, +buffDur.value); buffForm.reset()">
-            <input #buffName placeholder="Nome" required />
-            <input #buffDesc placeholder="Descrição" />
-            <input #buffDur type="number" value="0" style="width:60px" placeholder="Duração (-1=perm)" />
-            <button type="submit">Adicionar</button>
-            <button type="button" class="btn-small" (click)="showAddBuff.set(false)">Cancelar</button>
+          <form class="inline-add" #bf (submit)="addBuff(bName.value, bDesc.value, +bDur.value); bf.reset()">
+            <input #bName placeholder="Nome" required />
+            <input #bDesc placeholder="Descrição" />
+            <input #bDur type="number" value="0" style="width:60px" placeholder="-1=perm" />
+            <button type="submit" class="btn-sm primary">Adicionar</button>
           </form>
         }
 
         @if ((sheet()?.buffs?.length ?? 0) === 0) {
-          <p class="empty">Nenhum buff ou debuff ativo.</p>
+          <p class="empty">Nenhum efeito ativo</p>
         }
-        @for (buff of sheet()?.buffs ?? []; track buff.id) {
-          <div class="list-row list-row-vertical" [class.debuff]="buff.type === 'debuff'" [class.passive]="buff.type === 'passive'">
-            <div class="list-header">
+        @for (bf of sheet()?.buffs ?? []; track bf.id) {
+          <div class="card-sm buff-card" [class.debuff]="bf.type === 'debuff'" [class.passive]="bf.type === 'passive'">
+            <div class="card-sm-header">
               <strong>
-                <span class="buff-icon">{{ buff.type === 'debuff' ? '▼' : buff.type === 'passive' ? '◆' : '▲' }}</span>
-                {{ buff.name }}
+                <span class="buff-icon">{{ bf.type === 'debuff' ? '&#9660;' : bf.type === 'passive' ? '&#9670;' : '&#9650;' }}</span>
+                {{ bf.name }}
               </strong>
-              <span class="buff-duration">{{ buff.duration === -1 ? 'Permanente' : buff.duration + ' rodadas' }}</span>
-              @if (canEdit()) {
-                <button class="btn-danger btn-small" (click)="deleteBuff(buff)">Remover</button>
+              <span class="buff-dur">{{ bf.duration === -1 ? 'Permanente' : bf.duration + ' rodadas' }}</span>
+              @if (auth.isMaster()) {
+                <button class="icon-btn danger" (click)="deleteBuff(bf)">&times;</button>
               }
             </div>
-            @if (buff.description) {
-              <p class="list-desc">{{ buff.description }}</p>
+            @if (bf.description) {
+              <p class="muted card-sm-desc">{{ bf.description }}</p>
             }
           </div>
         }
-      </div>
-    </section>
-  }
+      </section>
+    }
 
-  <!-- ================================================================= -->
-  <!-- NOTES TAB                                                          -->
-  <!-- ================================================================= -->
-  @if (activeTab() === 'notes') {
-    <section class="tab-content">
-      <div class="card">
-        <h2>Notas</h2>
-        <label>
-          <textarea
-            formControlName="notes"
-            rows="12"
-            placeholder="Anotações do personagem..."
-            [readonly]="!canEdit()"
-          ></textarea>
-        </label>
+    <!-- NOTES TAB -->
+    @if (activeTab() === 'notes') {
+      <section class="section">
+        <h3>Notas</h3>
+        <textarea formControlName="notes" rows="10" placeholder="Anotações do personagem..."></textarea>
 
-        <h2>Biografia</h2>
-        <label>
-          <textarea
-            formControlName="biography"
-            rows="8"
-            placeholder="História do personagem..."
-            [readonly]="!canEditAttributes()"
-          ></textarea>
-        </label>
-      </div>
-    </section>
-  }
+        <h3>Biografia</h3>
+        <textarea formControlName="biography" rows="6" placeholder="História do personagem..." [readonly]="!auth.isMaster()"></textarea>
+      </section>
+    }
 
-  <!-- Saving indicator -->
-  @if (saving()) {
-    <div class="saving-toast">Salvando...</div>
-  }
+    @if (saving()) {
+      <div class="toast">Salvando...</div>
+    }
+  </main>
 </div>

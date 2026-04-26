@@ -78,7 +78,7 @@ export class AuthService {
   async signIn(email: string, password: string): Promise<{ error: AuthError | null }> {
     const { error } = await this.supabase.auth.signInWithPassword({ email, password });
     if (!error) {
-      this.router.navigate(['/table']);
+      this.router.navigate(['/stage']);
     }
     return { error };
   }
@@ -88,7 +88,7 @@ export class AuthService {
     if (!error && data.user) {
       await this.upsertUser(data.user.id, email);
       await this.loadUserRole(data.user.id);
-      this.router.navigate(['/table']);
+      this.router.navigate(['/stage']);
     }
     return { error };
   }

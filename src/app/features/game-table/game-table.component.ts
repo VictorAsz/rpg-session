@@ -15,6 +15,7 @@ import { CharacterStore } from '../../domain/character/services/character.store'
       <aside class="sidebar">
         <div class="logo">RPG<br />Session</div>
         <nav>
+          <a class="nav-item" routerLink="/stage">Stage</a>
           <a class="nav-item active" routerLink="/table">Personagens</a>
           <a class="nav-item disabled">Chat</a>
           <a class="nav-item disabled">Dados</a>

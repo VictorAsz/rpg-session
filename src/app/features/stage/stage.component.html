@@ -1,0 +1,175 @@
+<div class="stage-layout" [class.sidebar-collapsed]="!sidebarOpen()">
+  <!-- Retractable Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <span class="brand-text">RPG Session</span>
+      <button class="sidebar-toggle" (click)="toggleSidebar()" title="Recolher menu">
+        &#10094;
+      </button>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a class="nav-item active" routerLink="/stage">
+        <span class="nav-icon">&#9733;</span>
+        <span class="nav-label">Stage</span>
+      </a>
+      <a class="nav-item" routerLink="/table">
+        <span class="nav-icon">&#9731;</span>
+        <span class="nav-label">Personagens</span>
+      </a>
+      <a class="nav-item disabled">
+        <span class="nav-icon">&#9744;</span>
+        <span class="nav-label">Dados</span>
+      </a>
+      <a class="nav-item disabled">
+        <span class="nav-icon">&#9876;</span>
+        <span class="nav-label">Combate</span>
+      </a>
+      <a class="nav-item disabled">
+        <span class="nav-icon">&#8982;</span>
+        <span class="nav-label">Mapa</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <span class="user-badge" [class.master]="auth.isMaster()">
+        {{ auth.isMaster() ? 'MESTRE' : 'JOGADOR' }}
+      </span>
+      <button class="logout-btn" (click)="auth.signOut()">Sair</button>
+    </div>
+  </aside>
+
+  <!-- Expand button when collapsed -->
+  @if (!sidebarOpen()) {
+    <button class="sidebar-expand" (click)="toggleSidebar()" title="Abrir menu">
+      &#10095;
+    </button>
+  }
+
+  <!-- Main Stage Area -->
+  <main class="stage-main">
+    <!-- ====== TOP BAR: DICE ROLLER ====== -->
+    <div class="dice-bar">
+      <div class="dice-presets">
+        @for (d of dicePresets; track d.label) {
+          <button
+            class="dice-btn"
+            [style.--dice-color]="d.color"
+            (click)="rollDice(d.notation)"
+            [disabled]="rolling()"
+          >
+            <span class="dice-label">{{ d.label }}</span>
+          </button>
+        }
+      </div>
+
+      <form class="dice-custom" (submit)="rollCustom(); $event.preventDefault()">
+        <input
+          type="text"
+          [formControl]="customRoll.controls.notation"
+          placeholder="2d10+5"
+          class="dice-input"
+        />
+        <button type="submit" class="dice-btn roll-btn" [disabled]="rolling() || customRoll.invalid">
+          {{ rolling() ? '...' : 'Rolar' }}
+        </button>
+      </form>
+
+      @if (lastResult()) {
+        <div class="dice-result">
+          <span class="result-notation">{{ lastResult()!.notation }}</span>
+          <span class="result-value">{{ lastResult()!.result }}</span>
+        </div>
+      }
+    </div>
+
+    <!-- ====== CENTER: Canvas Placeholder ====== -->
+    <div class="canvas-area">
+      <div class="canvas-placeholder">
+        <span class="canvas-icon">&#9638;</span>
+        <p>O Canvas do mapa aparecerá aqui</p>
+      </div>
+    </div>
+
+    <!-- ====== TOP-RIGHT: INITIATIVE PANEL ====== -->
+    <div class="initiative-panel">
+      <div class="initiative-header">
+        <h3>Iniciativa</h3>
+        <div class="initiative-actions">
+          <button class="init-btn" (click)="sortInitiative()" title="Ordenar">&#8693;</button>
+          <button class="init-btn" (click)="nextTurn()" title="Próximo">&#9654;</button>
+          <button class="init-btn" (click)="clearInitiative()" title="Limpar">&#10005;</button>
+        </div>
+      </div>
+
+      @if (initiative().length > 0) {
+        <div class="initiative-list">
+          @for (entry of initiative(); track entry.characterId; let i = $index) {
+            <div
+              class="initiative-entry"
+              [class.current]="i === currentTurnIndex()"
+            >
+              <div class="init-order">{{ i + 1 }}</div>
+              <div class="init-info">
+                <span class="init-name">{{ entry.name }}</span>
+                <span class="init-roll">{{ entry.roll }}</span>
+              </div>
+              <button class="init-remove" (click)="removeFromInitiative(entry.characterId)">&#10005;</button>
+            </div>
+          }
+        </div>
+      } @else {
+        <p class="initiative-empty">Nenhum personagem na iniciativa</p>
+      }
+
+      <!-- Add character to initiative -->
+      <div class="initiative-add">
+        <select
+          class="init-select"
+          (change)="addToInitiative($any($event.target).selectedOptions[0]._char); $any($event.target).value = ''"
+        >
+          <option value="">+ Adicionar</option>
+          @if (characters$ | async; as chars) {
+            @for (c of chars; track c.id) {
+              <option [value]="c.id" [ngValue]="c">>{{ c.name }}</option>
+            }
+          }
+        </select>
+      </div>
+    </div>
+
+    <!-- ====== MASTER PANEL (bottom-left) ====== -->
+    @if (auth.isMaster()) {
+      <div class="master-panel">
+        <h4>Painel do Mestre</h4>
+        <div class="master-grid">
+          <button class="master-btn" routerLink="/table">Personagens</button>
+          <button class="master-btn disabled">Encontros</button>
+          <button class="master-btn disabled">Mapa</button>
+          <button class="master-btn disabled">Documentos</button>
+        </div>
+      </div>
+    }
+
+    <!-- ====== PLAYER PANEL (bottom-left) ====== -->
+    @if (!auth.isMaster()) {
+      <div class="player-panel">
+        <h4>Meus Dados</h4>
+        @if (characters$ | async; as chars) {
+          @if (chars.length === 0) {
+            <p class="muted">Nenhum personagem. Peça ao mestre para criar um.</p>
+          }
+          @for (c of chars; track c.id) {
+            <a class="player-char-card" [routerLink]="['/character', c.id]">
+              <span class="player-char-avatar">{{ c.name.charAt(0) }}</span>
+              <div>
+                <strong>{{ c.name }}</strong>
+                <span class="muted">HP {{ c.hp }}/{{ c.hp_max }}</span>
+              </div>
+            </a>
+          }
+        }
+      </div>
+    }
+  </main>
+</div>

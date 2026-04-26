@@ -148,8 +148,9 @@ export class CharacterService implements OnDestroy {
     const payload = event.old;
     if (!payload) return;
 
-    const id = (payload as Record<string, string>).id;
-    const characterId = (payload as Record<string, string>).character_id;
+    const record = payload as Record<string, string>;
+    const id = record['id'];
+    const characterId = record['character_id'];
 
     switch (entity) {
       case 'character':

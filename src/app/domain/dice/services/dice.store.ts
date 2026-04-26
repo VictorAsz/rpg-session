@@ -4,9 +4,21 @@ import { Store } from '../../base/store';
 import type { DiceRoll } from '../../../shared/models/rpg-models';
 import type { DiceState } from '../../../shared/models/dice-state.model';
 
+const INITIAL_STATE: DiceState = {
+  rolls: [],
+  maxRolls: 200,
+  isLoading: false,
+  error: null,
+};
+
+
 @Injectable({ providedIn: 'root' })
 export class DiceStore extends Store<DiceState> {
-  override get initialState(): DiceState {
+  constructor() {
+    super(INITIAL_STATE);
+  }
+
+  get initialState(): DiceState {
     return {
       rolls: [],
       maxRolls: 200,

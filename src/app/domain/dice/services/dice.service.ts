@@ -84,6 +84,11 @@ export class DiceService implements OnDestroy {
 
   // ── Dice Formula Parser ────────────────────────────────────────────
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   private evaluateNotation(notation: string): number {
     // Suporta formatos como: "2d10 + STR_MOD + 3", "1d20", "4d6"
     try {

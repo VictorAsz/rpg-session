@@ -72,7 +72,7 @@ export class RealtimeService implements OnDestroy {
       }
 
       this.channel.on('broadcast', { event }, (payload) => {
-        subscriber.next(payload.payload as T);
+        subscriber.next(payload['payload'] as T);
       });
     }).pipe(takeUntil(this.destroy$));
   }

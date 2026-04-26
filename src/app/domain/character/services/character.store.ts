@@ -12,9 +12,20 @@ import type {
 } from '../../../shared/models/rpg-models';
 import type { CharacterSheet, CharacterState } from '../../../shared/models/character-state.model';
 
+const INITIAL_STATE: CharacterState = {
+  characters: [],
+  sheets: {},
+  isLoading: false,
+  error: null,
+};
+
 @Injectable({ providedIn: 'root' })
 export class CharacterStore extends Store<CharacterState> {
-  override get initialState(): CharacterState {
+  constructor() {
+    super(INITIAL_STATE);
+  }
+
+  get initialState(): CharacterState {
     return {
       characters: [],
       sheets: {},

@@ -15,6 +15,7 @@ export type {
   BuffSource,
   Buff,
   DiceRoll,
+  DiceRollDetails,
   MessageType,
   ChatMessage,
   Document,

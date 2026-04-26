@@ -65,8 +65,6 @@ export class CharacterService implements OnDestroy {
   // ── Realtime Subscriptions ─────────────────────────────────────────
 
   subscribeToRealtime(): void {
-    this.realtime.subscribeToChannel();
-
     this.realtime
       .onChanges<Character>('characters', '*')
       .pipe(takeUntil(this.destroy$))

@@ -1,13 +1,14 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { AsyncPipe } from '@angular/common';
+import { AsyncPipe, KeyValuePipe } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
+import { RealtimeService } from '../../core/services/realtime.service';
 import { DiceService } from '../../domain/dice/services/dice.service';
 import { DiceStore } from '../../domain/dice/services/dice.store';
 import { CharacterStore } from '../../domain/character/services/character.store';
 import { CharacterService } from '../../domain/character/services/character.service';
-import type { Character } from '../../shared/models/rpg-models';
+import type { Character, DiceRollDetails } from '../../shared/models/rpg-models';
 
 interface InitiativeEntry {
   characterId: string;
@@ -17,12 +18,13 @@ interface InitiativeEntry {
 
 @Component({
   selector: 'app-stage',
-  imports: [ReactiveFormsModule, AsyncPipe, RouterLink],
+  imports: [ReactiveFormsModule, AsyncPipe, KeyValuePipe, RouterLink],
   templateUrl: './stage.component.html',
   styleUrls: ['./stage.component.scss'],
 })
 export class StageComponent {
   readonly auth = inject(AuthService);
+  private readonly realtime = inject(RealtimeService);
   private readonly diceService = inject(DiceService);
   private readonly diceStore = inject(DiceStore);
   private readonly characterStore = inject(CharacterStore);
@@ -36,12 +38,10 @@ export class StageComponent {
   readonly initiative = signal<InitiativeEntry[]>([]);
   readonly currentTurnIndex = signal(0);
   readonly rolling = signal(false);
-  readonly lastResult = signal<{ notation: string; result: number } | null>(null);
-
-  readonly addInitCharacter = signal<string | null>(null);
+  readonly lastResult = signal<{ notation: string; result: number; details: DiceRollDetails } | null>(null);
 
   readonly customRoll = this.fb.group({
-    notation: ['1d20', [Validators.required, Validators.pattern(/^\d+d\d+(\s*[+-]\d+)*$/)]],
+    notation: ['1d20 + STR_MOD', [Validators.required]],
   });
 
   readonly dicePresets = [
@@ -63,7 +63,10 @@ export class StageComponent {
   });
 
   constructor() {
+    this.realtime.connect('stage');
     this.characterService.loadAllCharacters();
+    this.diceService.subscribeToRealtime();
+    this.characterService.subscribeToRealtime();
   }
 
   toggleSidebar(): void {
@@ -74,21 +77,39 @@ export class StageComponent {
     this.rolling.set(true);
     const userId = this.auth.currentUserId()!;
     const char = this.currentCharacter();
-    const result = await this.diceService.roll(notation, userId, char?.id);
-    this.lastResult.set({ notation, result: result.result });
+
+    // Enhance notation with attributes if character is active
+    const formula = char
+      ? this.diceService.buildFormula(notation, char)
+      : notation;
+
+    const result = await this.diceService.roll(formula, userId, char?.id);
+    this.lastResult.set({
+      notation: result.notation,
+      result: result.result,
+      details: result.details,
+    });
     this.rolling.set(false);
 
-    setTimeout(() => this.lastResult.set(null), 3000);
+    setTimeout(() => this.lastResult.set(null), 4000);
   }
 
   async rollCustom(): Promise<void> {
     if (this.customRoll.invalid) return;
     const notation = this.customRoll.getRawValue().notation!;
     await this.rollDice(notation);
-    this.customRoll.reset({ notation: '1d20' });
+    this.customRoll.reset({ notation: '1d20 + STR_MOD' });
   }
 
-  addToInitiative(character: Character): void {
+  // ── Initiative ──────────────────────────────────────────────────────
+
+  addInitiativeById(characterId: string): void {
+    if (!characterId) return;
+    const char = this.characterStore.snapshot.characters.find(c => c.id === characterId);
+    if (char) this.addToInitiative(char);
+  }
+
+  async addToInitiative(character: Character): Promise<void> {
     const list = this.initiative();
     if (list.some(e => e.characterId === character.id)) return;
 
@@ -100,7 +121,6 @@ export class StageComponent {
       name: character.name,
       roll,
     }]);
-    this.addInitCharacter.set(null);
   }
 
   removeFromInitiative(characterId: string): void {

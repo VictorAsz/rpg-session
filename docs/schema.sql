@@ -145,6 +145,7 @@ CREATE TABLE dice_rolls (
   character_id   UUID REFERENCES characters(id) ON DELETE SET NULL,
   notation       TEXT NOT NULL,                     -- ex: "2d10 + STR + 3"
   result         INT NOT NULL,
+  details        JSONB DEFAULT '{}'::jsonb,         -- dados individuais + modificadores
   rolled_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 

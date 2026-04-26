@@ -123,11 +123,18 @@ export interface Document extends BaseEntity {
 }
 
 // 10. DICE ROLLS
+export interface DiceRollDetails {
+  dice: Array<{ count: number; sides: number; results: number[] }>;
+  attributeMods: Record<string, number>;
+  constantMod: number;
+}
+
 export interface DiceRoll extends BaseEntity {
   roller_user_id: string;
   character_id: string | null;
   notation: string; // ex: "2d10 + STR + 3"
   result: number;
+  details: DiceRollDetails;
   rolled_at: string;
 }
 

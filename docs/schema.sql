@@ -85,30 +85,8 @@ CREATE TABLE equipped_items (
 
 CREATE INDEX idx_equipped_character_id ON equipped_items(character_id);
 
--- 6. ABILITIES (habilidades)
-CREATE TABLE abilities (
-  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  character_id  UUID NOT NULL REFERENCES characters(id) ON DELETE CASCADE,
-  name          TEXT NOT NULL,
-  description   TEXT NOT NULL DEFAULT '',
-  effect        JSONB DEFAULT '{}'::jsonb,         -- fórmula de efeito
-  created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-
-CREATE INDEX idx_abilities_character_id ON abilities(character_id);
-
--- 7. SPELLS (magias — custo de mana)
-CREATE TABLE spells (
-  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  character_id  UUID NOT NULL REFERENCES characters(id) ON DELETE CASCADE,
-  name          TEXT NOT NULL,
-  description   TEXT NOT NULL DEFAULT '',
-  mana_cost     INT NOT NULL DEFAULT 0,
-  effect        JSONB DEFAULT '{}'::jsonb,         -- efeito automático ao conjurar
-  created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-
-CREATE INDEX idx_spells_character_id ON spells(character_id);
+-- 6. ABILITIES (habilidades) — DEPRECATED, usar spells_catalog + character_spells
+-- 7. SPELLS (magias) — DEPRECATED, usar spells_catalog + character_spells
 
 -- 8. BUFFS / DEBUFFS (efeitos temporários)
 CREATE TABLE buffs (
@@ -152,6 +130,65 @@ CREATE TABLE dice_rolls (
 CREATE INDEX idx_rolls_rolled_at ON dice_rolls(rolled_at DESC);
 
 -- 11. CHAT_MESSAGES (chat público, privado e sistema)
+
+-- ============================================================================
+-- NOVAS TABELAS: Catálogo Global (master cria, players referenciam)
+-- ============================================================================
+
+-- 12. SPELLS_CATALOG (compêndio de magias + habilidades)
+CREATE TABLE spells_catalog (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name          TEXT NOT NULL,
+  description   TEXT NOT NULL DEFAULT '',
+  image_url     TEXT NOT NULL DEFAULT '',
+  mana_cost     INT NOT NULL DEFAULT 0,
+  type          TEXT NOT NULL CHECK (type IN ('spell', 'ability')),
+  school        TEXT NOT NULL DEFAULT '',
+  element       TEXT NOT NULL DEFAULT '',
+  requirement   TEXT NOT NULL DEFAULT '',
+  target_type   TEXT NOT NULL DEFAULT 'single',
+  level         INT NOT NULL DEFAULT 1 CHECK (level BETWEEN 1 AND 10),
+  is_magic      BOOLEAN NOT NULL DEFAULT true,
+  is_visible    BOOLEAN NOT NULL DEFAULT true,
+  effect        JSONB DEFAULT '{}'::jsonb,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- 13. ITEMS_CATALOG (compêndio de itens)
+CREATE TABLE items_catalog (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name          TEXT NOT NULL,
+  description   TEXT NOT NULL DEFAULT '',
+  image_url     TEXT NOT NULL DEFAULT '',
+  value         INT NOT NULL DEFAULT 0,
+  is_usable     BOOLEAN NOT NULL DEFAULT false,
+  effect        JSONB DEFAULT '{}'::jsonb,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- 14. CHARACTER_SPELLS (personagem aprendeu magia/habilidade do catálogo)
+CREATE TABLE character_spells (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  character_id  UUID NOT NULL REFERENCES characters(id) ON DELETE CASCADE,
+  catalog_id    UUID NOT NULL REFERENCES spells_catalog(id) ON DELETE CASCADE,
+  UNIQUE (character_id, catalog_id),
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_char_spells_char ON character_spells(character_id);
+
+-- 15. CHARACTER_ITEMS (personagem possui item do catálogo + quantidade)
+CREATE TABLE character_items (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  character_id  UUID NOT NULL REFERENCES characters(id) ON DELETE CASCADE,
+  catalog_id    UUID NOT NULL REFERENCES items_catalog(id) ON DELETE CASCADE,
+  quantity      INT NOT NULL DEFAULT 1,
+  equipped      BOOLEAN NOT NULL DEFAULT false,
+  UNIQUE (character_id, catalog_id),
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_char_items_char ON character_items(character_id);
 CREATE TABLE chat_messages (
   id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   sender_user_id  UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -170,11 +207,12 @@ ALTER PUBLICATION supabase_realtime ADD TABLE
   users,
   characters,
   skills,
-  items,
   equipped_items,
-  abilities,
-  spells,
   buffs,
   documents,
   dice_rolls,
-  chat_messages;
+  chat_messages,
+  spells_catalog,
+  items_catalog,
+  character_spells,
+  character_items;

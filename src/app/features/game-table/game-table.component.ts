@@ -16,10 +16,9 @@ import { CharacterStore } from '../../domain/character/services/character.store'
         <div class="logo">RPG<br />Session</div>
         <nav>
           <a class="nav-item" routerLink="/stage">Stage</a>
+          <a class="nav-item" routerLink="/compendium">Compêndio</a>
+          <a class="nav-item" routerLink="/items">Itens</a>
           <a class="nav-item active" routerLink="/table">Personagens</a>
-          <a class="nav-item disabled">Chat</a>
-          <a class="nav-item disabled">Dados</a>
-          <a class="nav-item disabled">Mapa</a>
         </nav>
         <div class="sidebar-footer">
           <span class="user-role" [class.master]="auth.isMaster()">

@@ -48,19 +48,20 @@ export interface Skill extends BaseEntity {
   bonus: number;
 }
 
-// 4. ITEMS
+// Shared effect type
 export interface EffectFormula {
   type: 'damage' | 'heal' | 'buff' | 'debuff' | 'modify_attribute' | 'custom';
   formula: string; // ex: "2d10 + STR_MOD"
-  attribute?: string; // atributo alvo (para modify_attribute)
+  attribute?: string;
   description?: string;
 }
 
+// 4. ITEMS — DEPRECATED per-character (use ItemCatalog + CharacterItem)
 export interface Item extends BaseEntity {
   character_id: string;
   name: string;
   description: string;
-  quantity: number; // empilhável
+  quantity: number;
   effect: EffectFormula;
 }
 
@@ -82,7 +83,10 @@ export interface EquippedItem extends BaseEntity {
   slot: EquipmentSlot;
 }
 
-// 6. ABILITIES
+// 6. ABILITIES — DEPRECATED (use SpellCatalog + CharacterSpell)
+// 7. SPELLS — DEPRECATED (use SpellCatalog + CharacterSpell)
+
+// 6. ABILITIES — DEPRECATED per-character (use AbilitiesCatalog + CharacterAbility)
 export interface Ability extends BaseEntity {
   character_id: string;
   name: string;
@@ -90,13 +94,106 @@ export interface Ability extends BaseEntity {
   effect: EffectFormula;
 }
 
-// 7. SPELLS
+// 7. SPELLS — DEPRECATED per-character (use SpellCatalog + CharacterSpell)
 export interface Spell extends BaseEntity {
   character_id: string;
   name: string;
   description: string;
   mana_cost: number;
   effect: EffectFormula;
+}
+
+// 6+7. SPELLS CATALOG (compêndio global de magias)
+export interface SpellCatalog extends BaseEntity {
+  name: string;
+  description: string;
+  image_url: string;
+  mana_cost: number;
+  type_cast: 'ritual' | 'truque' | 'conjuracao' | 'invocacao' | 'encantamento';
+  school: string;
+  element: string;
+  requirement: string;
+  target_type: string;
+  level: number;
+  is_visible: boolean;
+  effect: EffectFormula;
+}
+
+export interface CharacterSpell extends BaseEntity {
+  character_id: string;
+  catalog_id: string;
+}
+
+// Abilities Catalog (compêndio global de habilidades)
+export interface AbilityCatalog extends BaseEntity {
+  name: string;
+  description: string;
+  image_url: string;
+  cost_type: 'mana' | 'hp' | 'none';
+  cost_amount: number;
+  ability_type: 'passiva' | 'ativa' | 'reacao';
+  school: string;
+  element: string;
+  requirement: string;
+  target_type: string;
+  level: number;
+  is_visible: boolean;
+  effect: EffectFormula;
+}
+
+export interface CharacterAbility extends BaseEntity {
+  character_id: string;
+  catalog_id: string;
+}
+
+// 7. SPELLS — DEPRECATED per-character (use SpellCatalog + CharacterSpell)
+export interface Spell extends BaseEntity {
+  character_id: string;
+  name: string;
+  description: string;
+  mana_cost: number;
+  effect: EffectFormula;
+}
+
+// 6+7. SPELLS CATALOG (compêndio global)
+export interface SpellCatalog extends BaseEntity {
+  name: string;
+  description: string;
+  image_url: string;
+  mana_cost: number;
+  type: 'spell' | 'ability';
+  school: string;
+  element: string;
+  requirement: string;
+  target_type: string;
+  level: number;
+  is_magic: boolean;
+  is_visible: boolean;
+  effect: EffectFormula;
+}
+
+// Character learns a spell/ability from catalog
+export interface CharacterSpell extends BaseEntity {
+  character_id: string;
+  catalog_id: string;
+}
+
+// 4. ITEMS CATALOG (compêndio global)
+export interface ItemCatalog extends BaseEntity {
+  name: string;
+  description: string;
+  image_url: string;
+  value: number;
+  is_usable: boolean;
+  effect: EffectFormula;
+}
+
+// Character owns an item from catalog
+export interface CharacterItem extends BaseEntity {
+  character_id: string;
+  catalog_id: string;
+  quantity: number;
+  equipped: boolean;
 }
 
 // 8. BUFFS / DEBUFFS

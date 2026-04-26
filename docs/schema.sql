@@ -4,10 +4,11 @@
 -- ============================================================================
 
 -- 1. USERS (Mestre + Jogadores)
+-- id = Supabase auth.users.id (UUID do auth, nao gerado aqui)
 CREATE TABLE users (
-  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  id          UUID PRIMARY KEY,
   name        TEXT NOT NULL,
-  password    TEXT NOT NULL,              -- simples, sem hash (conforme requisito)
+  password    TEXT NOT NULL,
   role        TEXT NOT NULL CHECK (role IN ('master', 'player')),
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );

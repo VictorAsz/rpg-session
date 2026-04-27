@@ -1,58 +1,5 @@
 <div class="stage-layout" [class.sidebar-collapsed]="!sidebarOpen()">
-  <!-- Retractable Sidebar -->
-  <aside class="sidebar">
-    <div class="sidebar-brand">
-      <span class="brand-text">RPG Session</span>
-      <button class="sidebar-toggle" (click)="toggleSidebar()" title="Recolher menu">
-        &#10094;
-      </button>
-    </div>
-
-    <nav class="sidebar-nav">
-      <a class="nav-item active" routerLink="/stage">
-        <span class="nav-icon">&#9733;</span>
-        <span class="nav-label">Stage</span>
-      </a>
-      <a class="nav-item" routerLink="/table">
-        <span class="nav-icon">&#9731;</span>
-        <span class="nav-label">Personagens</span>
-      </a>
-      <a class="nav-item" routerLink="/compendium">
-        <span class="nav-icon">&#9733;</span>
-        <span class="nav-label">Compêndio</span>
-      </a>
-      <a class="nav-item" routerLink="/items">
-        <span class="nav-icon">&#9820;</span>
-        <span class="nav-label">Itens</span>
-      </a>
-      <a class="nav-item disabled">
-        <span class="nav-icon">&#9876;</span>
-        <span class="nav-label">Combate</span>
-      </a>
-      <a class="nav-item disabled">
-        <span class="nav-icon">&#8982;</span>
-        <span class="nav-label">Mapa</span>
-      </a>
-    </nav>
-
-    <div class="sidebar-footer">
-      <div class="theme-switcher">
-        @for (t of themeService.themes; track t.value) {
-          <button
-            class="theme-btn"
-            [class.active]="themeService.current() === t.value"
-            [title]="t.label"
-            [innerHTML]="t.icon"
-            (click)="themeService.set(t.value)"
-          ></button>
-        }
-      </div>
-      <span class="user-badge" [class.master]="auth.isMaster()">
-        {{ auth.isMaster() ? 'MESTRE' : 'JOGADOR' }}
-      </span>
-      <button class="logout-btn" (click)="auth.signOut()">Sair</button>
-    </div>
-  </aside>
+  <app-sidebar [collapsible]="true" (toggled)="toggleSidebar()" />
 
   <!-- Expand button when collapsed -->
   @if (!sidebarOpen()) {

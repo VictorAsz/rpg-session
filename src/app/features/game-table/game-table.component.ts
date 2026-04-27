@@ -3,30 +3,17 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Subject } from 'rxjs';
 import { AsyncPipe } from '@angular/common';
+import { AppSidebarComponent } from '../../shared/components/app-sidebar/app-sidebar.component';
 import { AuthService } from '../../core/services/auth.service';
 import { CharacterService } from '../../domain/character/services/character.service';
 import { CharacterStore } from '../../domain/character/services/character.store';
 
 @Component({
   selector: 'app-game-table',
-  imports: [RouterLink, AsyncPipe, ReactiveFormsModule],
+  imports: [RouterLink, AsyncPipe, ReactiveFormsModule, AppSidebarComponent],
   template: `
     <div class="layout">
-      <aside class="sidebar">
-        <div class="logo">RPG<br />Session</div>
-        <nav>
-          <a class="nav-item" routerLink="/stage">Stage</a>
-          <a class="nav-item" routerLink="/compendium">Compêndio</a>
-          <a class="nav-item" routerLink="/items">Itens</a>
-          <a class="nav-item active" routerLink="/table">Personagens</a>
-        </nav>
-        <div class="sidebar-footer">
-          <span class="user-role" [class.master]="auth.isMaster()">
-            {{ auth.isMaster() ? 'Mestre' : 'Jogador' }}
-          </span>
-          <button class="logout" (click)="auth.signOut()">Sair</button>
-        </div>
-      </aside>
+      <app-sidebar />
 
       <main class="main">
         <header class="header">
@@ -138,91 +125,6 @@ import { CharacterStore } from '../../domain/character/services/character.store'
       background: var(--theme-bg);
       color: var(--theme-text);
     }
-
-    /* Sidebar */
-    .sidebar {
-      width: var(--theme-sidebar-width);
-      background: var(--theme-sidebar-bg);
-      border-right: 1px solid var(--theme-sidebar-border);
-      display: flex;
-      flex-direction: column;
-      padding: 1.5rem 0;
-      flex-shrink: 0;
-    }
-
-    .logo {
-      font-size: 1.1rem;
-      font-weight: 700;
-      color: var(--theme-primary);
-      letter-spacing: 0.05em;
-      padding: 0 1.5rem 1.5rem;
-      border-bottom: 1px solid var(--theme-border);
-      margin-bottom: 1rem;
-      line-height: 1.3;
-    }
-
-    nav {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 0.25rem;
-      padding: 0 0.75rem;
-    }
-
-    .nav-item {
-      padding: 0.6rem 0.75rem;
-      border-radius: var(--theme-radius-sm);
-      color: var(--theme-text-muted);
-      text-decoration: none;
-      font-size: 0.875rem;
-      transition: all var(--theme-transition);
-    }
-
-    .nav-item.active {
-      background: var(--theme-surface-hover);
-      color: var(--theme-text);
-    }
-
-    .nav-item.disabled {
-      opacity: 0.35;
-      pointer-events: none;
-    }
-
-    .nav-item:not(.disabled):hover {
-      background: var(--theme-surface-hover);
-      color: var(--theme-text);
-    }
-
-    .sidebar-footer {
-      padding: 1.5rem 1.5rem 0;
-      border-top: 1px solid var(--theme-border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .user-role {
-      font-size: 0.75rem;
-      padding: 0.25rem 0.5rem;
-      border-radius: var(--theme-radius-sm);
-      background: var(--theme-surface-hover);
-      color: var(--theme-text-muted);
-    }
-
-    .user-role.master {
-      background: var(--theme-primary-bg);
-      color: var(--theme-primary);
-    }
-
-    .logout {
-      font-size: 0.75rem;
-      background: none;
-      border: none;
-      color: var(--theme-text-muted);
-      cursor: pointer;
-    }
-
-    .logout:hover { color: var(--theme-primary); }
 
     /* Main */
     .main {

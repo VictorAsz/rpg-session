@@ -5,25 +5,15 @@ import { AsyncPipe } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
 import { CatalogService } from '../../domain/compendium/services/catalog.service';
 import { CatalogStore } from '../../domain/compendium/services/catalog.store';
+import { AppSidebarComponent } from '../../shared/components/app-sidebar/app-sidebar.component';
 import type { ItemCatalog } from '../../shared/models/rpg-models';
 
 @Component({
   selector: 'app-items-catalog',
-  imports: [ReactiveFormsModule, AsyncPipe, RouterLink],
+  imports: [ReactiveFormsModule, AsyncPipe, RouterLink, AppSidebarComponent],
   template: `
     <div class="layout">
-      <!-- SIDEBAR -->
-      <aside class="sidebar">
-        <a class="sb-back" routerLink="/stage">&#8592; Stage</a>
-        <h1 class="sb-title">Itens</h1>
-        <nav class="sb-nav">
-          <a class="sb-item active" routerLink="/items">Catálogo</a>
-        </nav>
-        <div class="sb-footer">
-          <span class="sb-badge" [class.master]="auth.isMaster()">{{ auth.isMaster() ? 'MESTRE' : 'JOGADOR' }}</span>
-          <button class="sb-logout" (click)="auth.signOut()">Sair</button>
-        </div>
-      </aside>
+      <app-sidebar />
 
       <!-- MAIN -->
       <main class="main">
@@ -113,30 +103,6 @@ import type { ItemCatalog } from '../../shared/models/rpg-models';
     :host { display: block; height: 100dvh; }
 
     .layout { display: flex; height: 100%; }
-
-    /* SIDEBAR — standardized */
-    .sidebar {
-      width: var(--theme-sidebar-width);
-      background: var(--theme-sidebar-bg);
-      border-right: 1px solid var(--theme-sidebar-border);
-      display: flex; flex-direction: column;
-      padding: 1.25rem;
-      flex-shrink: 0;
-    }
-    .sb-back { font-size: 0.75rem; color: var(--theme-text-muted); text-decoration: none; margin-bottom: 0.75rem; }
-    .sb-back:hover { color: var(--theme-primary); }
-    .sb-title { font-size: 1.05rem; color: var(--theme-primary); margin: 0 0 1rem; font-weight: 700; }
-    .sb-nav { flex: 1; display: flex; flex-direction: column; gap: 0.15rem; }
-    .sb-item { padding: 0.5rem 0.75rem; border-radius: var(--theme-radius-sm); font-size: 0.825rem; color: var(--theme-text-muted); text-decoration: none; transition: all var(--theme-transition); }
-    .sb-item:hover { background: var(--theme-surface-hover); color: var(--theme-text); }
-    .sb-item.active { background: var(--theme-primary-bg); color: var(--theme-primary); }
-    .sb-footer { margin-top: auto; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--theme-border); padding-top: 0.75rem; }
-    .sb-badge { font-size: 0.6rem; padding: 0.15rem 0.5rem; border-radius: 3px; background: var(--theme-surface-hover); color: var(--theme-text-muted); font-weight: 600; letter-spacing: 0.06em; }
-    .sb-badge.master { background: var(--theme-primary-bg); color: var(--theme-primary); }
-    .sb-logout { background: none; border: none; color: var(--theme-text-muted); cursor: pointer; font-size: 0.7rem; }
-    .sb-logout:hover { color: var(--theme-primary); }
-
-    /* MAIN */
     .main { flex: 1; overflow-y: auto; padding: 1.75rem 2rem; }
     .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; }
     h2 { margin: 0; font-size: 1.35rem; color: var(--theme-heading); font-weight: 600; }

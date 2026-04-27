@@ -1,61 +1,60 @@
 <div class="layout">
-  <!-- Sidebar -->
-  <aside class="sidebar">
-    <a class="sidebar-back" routerLink="/stage">&#8592; Stage</a>
-    <div class="sidebar-char">
-      <div class="char-avatar">
-        {{ sheet()?.character?.name?.charAt(0)?.toUpperCase() || '?' }}
-      </div>
-      <h2 class="char-name">{{ sheet()?.character?.name || 'Carregando...' }}</h2>
-      <p class="char-race">{{ sheet()?.character?.race || '—' }}</p>
-      <span class="char-xp">XP {{ sheet()?.character?.xp || 0 }}</span>
-    </div>
-
-    <div class="sidebar-bars">
-      <div class="bar-group">
-        <div class="bar-label">HP</div>
-        <div class="bar-track">
-          <div class="bar-fill hp" [style.width.%]="hpPercent()"></div>
-        </div>
-        <div class="bar-value">{{ sheet()?.character?.hp || 0 }}/{{ sheet()?.character?.hp_max || 0 }}</div>
-      </div>
-      <div class="bar-group">
-        <div class="bar-label">Mana</div>
-        <div class="bar-track">
-          <div class="bar-fill mana" [style.width.%]="manaPercent()"></div>
-        </div>
-        <div class="bar-value">{{ sheet()?.character?.mana || 0 }}/{{ sheet()?.character?.mana_max || 0 }}</div>
-      </div>
-    </div>
-
-    <nav class="sidebar-nav">
-      @for (t of tabs; track t) {
-        <button
-          class="nav-item"
-          [class.active]="activeTab() === t"
-          (click)="activeTab.set(t)"
-        >
-          {{ tabLabel(t) }}
-          @if (t === 'buffs' && (sheet()?.buffs?.length ?? 0) > 0) {
-            <span class="nav-badge">{{ sheet()?.buffs?.length }}</span>
-          }
-        </button>
-      }
-    </nav>
-
-    <div class="sidebar-stats">
-      @for (s of stats; track s.key) {
-        <div class="mini-stat">
-          <span class="mini-label">{{ s.label }}</span>
-          <span class="mini-value">{{ sheet()?.character?.[s.key] || 0 }}</span>
-          <span class="mini-mod">({{ statMod(sheet()?.character?.[s.key] || 0) }})</span>
-        </div>
-      }
-    </div>
-  </aside>
+  <app-sidebar />
 
   <!-- Main Content -->
   <main class="main" [formGroup]="form">
+    <!-- Character info panel (left side of main) -->
+    <aside class="char-panel">
+      <div class="panel-back">
+        <a routerLink="/stage">&#8592; Stage</a>
+        <a routerLink="/table">Personagens</a>
+      </div>
+      <div class="char-header">
+        <div class="char-avatar">
+          {{ sheet()?.character?.name?.charAt(0)?.toUpperCase() || '?' }}
+        </div>
+        <h2 class="char-name">{{ sheet()?.character?.name || 'Carregando...' }}</h2>
+        <p class="char-race">{{ sheet()?.character?.race || '—' }}</p>
+        <span class="char-xp">XP {{ sheet()?.character?.xp || 0 }}</span>
+      </div>
+
+      <div class="char-bars">
+        <div class="bar-group">
+          <div class="bar-label">HP</div>
+          <div class="bar-track"><div class="bar-fill hp" [style.width.%]="hpPercent()"></div></div>
+          <div class="bar-value">{{ sheet()?.character?.hp || 0 }}/{{ sheet()?.character?.hp_max || 0 }}</div>
+        </div>
+        <div class="bar-group">
+          <div class="bar-label">MP</div>
+          <div class="bar-track"><div class="bar-fill mana" [style.width.%]="manaPercent()"></div></div>
+          <div class="bar-value">{{ sheet()?.character?.mana || 0 }}/{{ sheet()?.character?.mana_max || 0 }}</div>
+        </div>
+      </div>
+
+      <nav class="char-tabs">
+        @for (t of tabs; track t) {
+          <button class="tab-item" [class.active]="activeTab() === t" (click)="activeTab.set(t)">
+            {{ tabLabel(t) }}
+            @if (t === 'buffs' && (sheet()?.buffs?.length ?? 0) > 0) {
+              <span class="tab-badge">{{ sheet()?.buffs?.length }}</span>
+            }
+          </button>
+        }
+      </nav>
+
+      <div class="char-mini-stats">
+        @for (s of stats; track s.key) {
+          <div class="mini-stat">
+            <span class="mini-label">{{ s.label }}</span>
+            <span class="mini-value">{{ sheet()?.character?.[s.key] || 0 }}</span>
+            <span class="mini-mod">({{ statMod(sheet()?.character?.[s.key] || 0) }})</span>
+          </div>
+        }
+      </div>
+    </aside>
+
+    <!-- Tab content -->
+    <div class="content-area">
     @if (remoteChanged()) {
       <div class="remote-banner">
         <span>Ficha atualizada remotamente</span>
@@ -371,5 +370,6 @@
     @if (saving()) {
       <div class="toast">Salvando...</div>
     }
+    </div><!-- /content-area -->
   </main>
 </div>

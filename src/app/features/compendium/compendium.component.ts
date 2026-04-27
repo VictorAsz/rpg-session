@@ -6,6 +6,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { RealtimeService } from '../../core/services/realtime.service';
 import { CatalogService } from '../../domain/compendium/services/catalog.service';
 import { CatalogStore } from '../../domain/compendium/services/catalog.store';
+import { AppSidebarComponent } from '../../shared/components/app-sidebar/app-sidebar.component';
 import { MAGIC_SCHOOLS } from '../../shared/models/rpg-models';
 import type { SpellCatalog, AbilityCatalog, MagicSchool } from '../../shared/models/rpg-models';
 
@@ -13,25 +14,18 @@ type TabMode = 'spells' | 'abilities';
 
 @Component({
   selector: 'app-compendium',
-  imports: [ReactiveFormsModule, AsyncPipe, RouterLink],
+  imports: [ReactiveFormsModule, AsyncPipe, RouterLink, AppSidebarComponent],
   template: `
     <div class="layout">
-      <aside class="sidebar">
-        <a class="back-link" routerLink="/stage">&#8592; Stage</a>
-        <h1 class="title">Compêndio</h1>
-        <nav>
-          <button class="nav-btn" [class.active]="mode() === 'spells'" (click)="mode.set('spells')">Magias</button>
-          <button class="nav-btn" [class.active]="mode() === 'abilities'" (click)="mode.set('abilities')">Habilidades</button>
-        </nav>
-        <div class="sidebar-footer">
-          <span class="badge" [class.master]="auth.isMaster()">{{ auth.isMaster() ? 'MESTRE' : 'JOGADOR' }}</span>
-          <button class="logout" (click)="auth.signOut()">Sair</button>
-        </div>
-      </aside>
+      <app-sidebar />
 
       <main class="main">
         <header class="header">
           <h2>{{ mode() === 'spells' ? 'Magias' : 'Habilidades' }}</h2>
+          <div class="mode-tabs">
+            <button class="mode-tab" [class.active]="mode() === 'spells'" (click)="mode.set('spells')">Magias</button>
+            <button class="mode-tab" [class.active]="mode() === 'abilities'" (click)="mode.set('abilities')">Habilidades</button>
+          </div>
           @if (auth.isMaster()) {
             <button class="btn-primary" (click)="openForm()">+ Novo</button>
           }
@@ -226,21 +220,12 @@ type TabMode = 'spells' | 'abilities';
   styles: `
     :host { display: block; height: 100dvh; background: var(--theme-bg); color: var(--theme-text); font-family: var(--theme-font); }
     .layout { display: flex; height: 100%; }
-    .sidebar { width: var(--theme-sidebar-width); background: var(--theme-sidebar-bg); border-right: 1px solid var(--theme-sidebar-border); padding: 1.25rem; display: flex; flex-direction: column; flex-shrink: 0; }
-    .back-link { color: var(--theme-text-muted); text-decoration: none; font-size: 0.75rem; margin-bottom: 0.75rem; }
-    .back-link:hover { color: var(--theme-primary); }
-    .title { font-size: 1.05rem; color: var(--theme-primary); margin: 0 0 1rem; }
-    nav { display: flex; flex-direction: column; gap: 0.25rem; flex: 1; }
-    .nav-btn { padding: 0.45rem 0.6rem; border: none; border-radius: var(--theme-radius-sm); background: none; color: var(--theme-text-muted); text-align: left; cursor: pointer; font-size: 0.8rem; transition: all var(--theme-transition); }
-    .nav-btn.active { background: var(--theme-surface-hover); color: var(--theme-text); }
-    .nav-btn:hover { background: var(--theme-surface-hover); }
-    .sidebar-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--theme-border); padding-top: 0.75rem; }
-    .badge { font-size: 0.6rem; padding: 0.15rem 0.5rem; border-radius: 3px; background: var(--theme-surface-hover); color: var(--theme-text-muted); }
-    .badge.master { background: var(--theme-primary-bg); color: var(--theme-primary); }
-    .logout { background: none; border: none; color: var(--theme-text-muted); cursor: pointer; font-size: 0.7rem; }
-    .logout:hover { color: var(--theme-primary); }
     .main { flex: 1; overflow-y: auto; padding: 1.5rem 2rem; }
     .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+    .mode-tabs { display: flex; gap: 0.25rem; background: var(--theme-surface-hover); border-radius: var(--theme-radius-sm); padding: 0.2rem; }
+    .mode-tab { padding: 0.35rem 0.8rem; border: none; border-radius: var(--theme-radius-sm); background: none; color: var(--theme-text-muted); font-size: 0.78rem; cursor: pointer; transition: all var(--theme-transition); }
+    .mode-tab.active { background: var(--theme-surface); color: var(--theme-heading); box-shadow: var(--theme-shadow-sm); }
+    .mode-tab:hover:not(.active) { color: var(--theme-text); }
     h2 { margin: 0; font-size: 1.25rem; color: var(--theme-heading); }
     h3 { margin: 0 0 1rem; font-size: 1rem; color: var(--theme-heading); }
     .btn-primary { padding: 0.5rem 1.1rem; background: var(--theme-primary); color: #fff; border: none; border-radius: var(--theme-radius-sm); font-size: 0.8rem; cursor: pointer; }

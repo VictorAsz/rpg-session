@@ -6,6 +6,7 @@ import { AsyncPipe } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
 import { CharacterService } from '../../domain/character/services/character.service';
 import { CharacterStore } from '../../domain/character/services/character.store';
+import { AppSidebarComponent } from '../../shared/components/app-sidebar/app-sidebar.component';
 import type { CharacterSheet } from '../../shared/models/character-state.model';
 import type {
   Character,
@@ -51,7 +52,7 @@ interface CharForm {
 
 @Component({
   selector: 'app-character-sheet',
-  imports: [ReactiveFormsModule, AsyncPipe, RouterLink],
+  imports: [ReactiveFormsModule, AsyncPipe, RouterLink, AppSidebarComponent],
   templateUrl: './character-sheet.component.html',
   styleUrls: ['./character-sheet.component.scss'],
 })

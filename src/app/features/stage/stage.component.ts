@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { AsyncPipe, KeyValuePipe } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
 import { RealtimeService } from '../../core/services/realtime.service';
+import { ThemeService } from '../../core/services/theme.service';
 import { DiceService } from '../../domain/dice/services/dice.service';
 import { DiceStore } from '../../domain/dice/services/dice.store';
 import { CharacterStore } from '../../domain/character/services/character.store';
@@ -24,6 +25,7 @@ interface InitiativeEntry {
 })
 export class StageComponent {
   readonly auth = inject(AuthService);
+  readonly themeService = inject(ThemeService);
   private readonly realtime = inject(RealtimeService);
   private readonly diceService = inject(DiceService);
   private readonly diceStore = inject(DiceStore);

@@ -40,7 +40,7 @@ import { AuthService } from '../../core/services/auth.service';
       justify-content: center;
       align-items: center;
       height: 100dvh;
-      background: #1a1a2e;
+      background: var(--theme-bg);
     }
 
     .login-form {
@@ -50,72 +50,68 @@ import { AuthService } from '../../core/services/auth.service';
       width: 100%;
       max-width: 360px;
       padding: 2rem;
-      background: #16213e;
-      border-radius: 8px;
-      border: 1px solid #0f3460;
+      background: var(--theme-surface);
+      border-radius: var(--theme-radius-lg);
+      border: 1px solid var(--theme-border);
     }
 
     h1 {
       text-align: center;
-      color: #e94560;
+      color: var(--theme-primary);
       margin: 0 0 1rem;
       font-size: 1.75rem;
+      font-family: var(--theme-font);
     }
 
     label {
       display: flex;
       flex-direction: column;
       gap: 0.25rem;
-      color: #a0a8c0;
+      color: var(--theme-text-muted);
       font-size: 0.875rem;
+      font-family: var(--theme-font);
     }
 
     input {
       padding: 0.625rem;
-      border: 1px solid #0f3460;
-      border-radius: 4px;
-      background: #1a1a2e;
-      color: #eee;
+      border: 1px solid var(--theme-input-border);
+      border-radius: var(--theme-radius-sm);
+      background: var(--theme-input-bg);
+      color: var(--theme-text);
       font-size: 0.9rem;
+      font-family: var(--theme-font);
     }
 
     input:focus {
       outline: none;
-      border-color: #e94560;
+      border-color: var(--theme-input-focus);
     }
 
     button {
       padding: 0.75rem;
       border: none;
-      border-radius: 4px;
-      background: #e94560;
+      border-radius: var(--theme-radius-sm);
+      background: var(--theme-primary);
       color: #fff;
       font-size: 1rem;
       cursor: pointer;
-      transition: background 0.2s;
+      transition: background var(--theme-transition);
+      font-family: var(--theme-font);
     }
 
-    button:hover:not(:disabled) {
-      background: #d63851;
-    }
-
-    button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
+    button:hover:not(:disabled) { background: var(--theme-primary-hover); }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
 
     button.secondary {
       background: transparent;
-      border: 1px solid #0f3460;
-      color: #a0a8c0;
+      border: 1px solid var(--theme-border);
+      color: var(--theme-text-muted);
     }
 
-    button.secondary:hover:not(:disabled) {
-      background: #0f3460;
-    }
+    button.secondary:hover:not(:disabled) { background: var(--theme-surface-hover); }
 
     .error {
-      color: #e94560;
+      color: var(--theme-primary);
       font-size: 0.8rem;
       text-align: center;
       margin: 0;

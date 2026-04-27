@@ -36,6 +36,17 @@
     </nav>
 
     <div class="sidebar-footer">
+      <div class="theme-switcher">
+        @for (t of themeService.themes; track t.value) {
+          <button
+            class="theme-btn"
+            [class.active]="themeService.current() === t.value"
+            [title]="t.label"
+            [innerHTML]="t.icon"
+            (click)="themeService.set(t.value)"
+          ></button>
+        }
+      </div>
       <span class="user-badge" [class.master]="auth.isMaster()">
         {{ auth.isMaster() ? 'MESTRE' : 'JOGADOR' }}
       </span>

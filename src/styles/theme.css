@@ -1,0 +1,152 @@
+/* ============================================================================
+   RPG Session — Global Theme System
+   ============================================================================ */
+
+:root {
+  /* Base palette — overridden by [data-theme] */
+  --theme-bg:            #0d0f1a;
+  --theme-surface:       #11131f;
+  --theme-surface-hover: #1a1e30;
+  --theme-border:        #1e2235;
+  --theme-border-light:  rgba(255,255,255,0.06);
+
+  --theme-text:          #c8ccd4;
+  --theme-text-muted:    #6b7084;
+  --theme-text-dim:      #3d3f50;
+  --theme-heading:       #e0e2e8;
+
+  --theme-primary:       #e94560;
+  --theme-primary-hover: #d63851;
+  --theme-primary-bg:    rgba(233,69,96,0.12);
+
+  --theme-accent-gold:   #ffd740;
+  --theme-accent-green:  #4caf50;
+  --theme-accent-blue:   #5c6bc0;
+  --theme-accent-purple: #7c4dff;
+
+  --theme-sidebar-width: 220px;
+  --theme-sidebar-bg:    #11131f;
+  --theme-sidebar-border: rgba(255,255,255,0.06);
+
+  --theme-shadow-sm:     0 1px 3px rgba(0,0,0,0.3);
+  --theme-shadow-md:     0 4px 12px rgba(0,0,0,0.4);
+  --theme-shadow-lg:     0 8px 24px rgba(0,0,0,0.5);
+
+  --theme-radius-sm:     4px;
+  --theme-radius-md:     8px;
+  --theme-radius-lg:     12px;
+
+  --theme-font:           'Inter', system-ui, sans-serif;
+  --theme-font-mono:      'JetBrains Mono', monospace;
+
+  --theme-transition:     0.15s ease;
+
+  --theme-input-bg:       #0d0f1a;
+  --theme-input-border:   #1e2235;
+  --theme-input-focus:    #e94560;
+
+  --theme-modal-bg:       #161824;
+  --theme-modal-backdrop: rgba(0,0,0,0.6);
+}
+
+/* ============================================================================
+   THEME: Medieval Dark (default refined)
+   ============================================================================ */
+[data-theme="dark"] {
+  --theme-bg:            #0d0f1a;
+  --theme-surface:       #11131f;
+  --theme-surface-hover: #1a1e30;
+  --theme-border:        #1e2235;
+
+  --theme-text:          #c8ccd4;
+  --theme-text-muted:    #6b7084;
+  --theme-text-dim:      #3d3f50;
+  --theme-heading:       #e0e2e8;
+
+  --theme-primary:       #e94560;
+  --theme-primary-hover: #d63851;
+
+  --theme-accent-gold:   #ffd740;
+  --theme-accent-green:  #4caf50;
+  --theme-accent-blue:   #5c6bc0;
+
+  --theme-sidebar-bg:    #11131f;
+  --theme-input-bg:      #0d0f1a;
+  --theme-modal-bg:      #161824;
+}
+
+/* ============================================================================
+   THEME: Medieval Pastel
+   ============================================================================ */
+[data-theme="pastel"] {
+  --theme-bg:            #f5f0e8;
+  --theme-surface:       #faf6ef;
+  --theme-surface-hover: #efe5d5;
+  --theme-border:        #d4c5a9;
+  --theme-border-light:  rgba(0,0,0,0.06);
+
+  --theme-text:          #3d3226;
+  --theme-text-muted:    #8c7b6b;
+  --theme-text-dim:      #b8a898;
+  --theme-heading:       #2a1f14;
+
+  --theme-primary:       #b84c3b;
+  --theme-primary-hover: #9a3e2f;
+  --theme-primary-bg:    rgba(184,76,59,0.08);
+
+  --theme-accent-gold:   #c49a2c;
+  --theme-accent-green:  #5c7a4a;
+  --theme-accent-blue:   #4a6fa5;
+  --theme-accent-purple: #6b4e8a;
+
+  --theme-sidebar-bg:    #efe5d5;
+  --theme-sidebar-border: rgba(0,0,0,0.08);
+
+  --theme-input-bg:      #f5f0e8;
+  --theme-input-border:  #d4c5a9;
+  --theme-input-focus:   #b84c3b;
+
+  --theme-modal-bg:      #faf6ef;
+  --theme-modal-backdrop: rgba(0,0,0,0.35);
+
+  --theme-shadow-sm:     0 1px 3px rgba(0,0,0,0.08);
+  --theme-shadow-md:     0 4px 12px rgba(0,0,0,0.1);
+  --theme-shadow-lg:     0 8px 24px rgba(0,0,0,0.12);
+}
+
+/* ============================================================================
+   THEME: Medieval Dark (starry night)
+   ============================================================================ */
+[data-theme="midnight"] {
+  --theme-bg:            #0a0c14;
+  --theme-surface:       #0f1120;
+  --theme-surface-hover: #16192d;
+  --theme-border:        #1a1d33;
+  --theme-border-light:  rgba(255,255,255,0.04);
+
+  --theme-text:          #bcc0d0;
+  --theme-text-muted:    #5c6078;
+  --theme-text-dim:      #2e3144;
+  --theme-heading:       #d4d8e8;
+
+  --theme-primary:       #ff6b6b;
+  --theme-primary-hover: #e55a5a;
+  --theme-primary-bg:    rgba(255,107,107,0.1);
+
+  --theme-accent-gold:   #ffb347;
+  --theme-accent-green:  #69db7c;
+  --theme-accent-blue:   #748ffc;
+  --theme-accent-purple: #9775fa;
+
+  --theme-sidebar-bg:    #0f1120;
+  --theme-sidebar-border: rgba(255,255,255,0.04);
+
+  --theme-input-bg:      #0a0c14;
+  --theme-input-border:  #1a1d33;
+
+  --theme-modal-bg:      #131528;
+
+  --theme-shadow-sm:     0 1px 3px rgba(0,0,0,0.5);
+  --theme-shadow-md:     0 4px 16px rgba(0,0,0,0.6);
+  --theme-shadow-lg:     0 8px 32px rgba(0,0,0,0.7);
+}

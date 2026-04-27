@@ -1,1 +1,19 @@
-/* You can add global styles to this file, and also import other style files */
+@use 'styles/theme.css';
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  background: var(--theme-bg);
+  color: var(--theme-text);
+  font-family: var(--theme-font);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a { color: inherit; }
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--theme-border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--theme-text-dim); }

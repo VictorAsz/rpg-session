@@ -221,8 +221,17 @@ export interface Buff extends BaseEntity {
   type: BuffType;
   effect: EffectFormula;
   source: BuffSource;
-  duration: number; // -1 = permanente, 0 = instantâneo, >0 = rodadas
-  expires_at: string | null; // null = permanente/indefinido
+  duration: number;
+  expires_at: string | null;
+  status_effect_id: string | null;
+}
+
+export interface StatusEffect extends BaseEntity {
+  name: string;
+  description: string;
+  icon: string;
+  color: string;
+  is_debuff: boolean;
 }
 
 // 9. DOCUMENTS

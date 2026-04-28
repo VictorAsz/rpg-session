@@ -4,6 +4,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Subject, debounceTime, distinctUntilChanged, filter, takeUntil } from 'rxjs';
 import { AsyncPipe } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
+import { SupabaseService } from '../../core/services/supabase.service';
 import { CharacterService } from '../../domain/character/services/character.service';
 import { CharacterStore } from '../../domain/character/services/character.store';
 import { CatalogService } from '../../domain/compendium/services/catalog.service';
@@ -11,7 +12,7 @@ import { CatalogStore } from '../../domain/compendium/services/catalog.store';
 import { AppSidebarComponent } from '../../shared/components/app-sidebar/app-sidebar.component';
 import type { CharacterSheet } from '../../shared/models/character-state.model';
 import type {
-  Character, Skill, Item, EquippedItem, Ability, Spell, Buff, EquipmentSlot, ItemCatalog,
+  Character, Skill, Item, EquippedItem, Ability, Spell, Buff, EquipmentSlot, ItemCatalog, StatusEffect,
 } from '../../shared/models/rpg-models';
 
 const STATS = [
@@ -33,6 +34,7 @@ export class CharacterSheetComponent implements OnDestroy {
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
   readonly auth = inject(AuthService);
+  private readonly supabase = inject(SupabaseService);
   private readonly characterService = inject(CharacterService);
   private readonly store = inject(CharacterStore);
   readonly catalogService = inject(CatalogService);
@@ -56,6 +58,8 @@ export class CharacterSheetComponent implements OnDestroy {
   readonly showAddBuff = signal(false);
   readonly imagePreview = signal<string | null>(null);
   readonly showImageInput = signal(false);
+  readonly statusEffects = signal<StatusEffect[]>([]);
+  readonly showStatusPicker = signal(false);
 
   editImage(): void { this.showImageInput.set(true); }
 
@@ -103,6 +107,7 @@ export class CharacterSheetComponent implements OnDestroy {
     });
     this.characterService.loadAllCharacters();
     this.catalogService.loadCatalog();
+    this.loadStatusEffects();
 
     this.form.valueChanges.pipe(
       takeUntil(this.destroy$),
@@ -225,11 +230,27 @@ export class CharacterSheetComponent implements OnDestroy {
   async deleteAbility(a: Ability): Promise<void> { await this.characterService.deleteAbility(a.id, a.character_id); }
   async deleteSpell(sp: Spell): Promise<void> { await this.characterService.deleteSpell(sp.id, sp.character_id); }
 
-  async addBuff(name: string, desc: string, dur: number): Promise<void> {
+  async addBuff(name: string, desc: string, dur: number, statusEffectId?: string): Promise<void> {
     const id = this.characterId(); if (!id) return;
-    await this.characterService.addBuff({ character_id: id, name, description: desc, type: dur < 0 ? 'passive' : 'buff', effect: { type: 'custom', formula: '' }, source: 'manual', duration: dur, expires_at: null });
+    const type = statusEffectId
+      ? (this.statusEffects().find(s => s.id === statusEffectId)?.is_debuff ? 'debuff' : 'buff')
+      : (dur < 0 ? 'passive' : 'buff');
+    await this.characterService.addBuff({
+      character_id: id, name, description: desc, type: type as Buff['type'],
+      effect: { type: 'custom', formula: '' }, source: 'manual', duration: dur,
+      expires_at: null, status_effect_id: statusEffectId ?? null,
+    });
+    this.showStatusPicker.set(false);
   }
+
   async deleteBuff(b: Buff): Promise<void> { await this.characterService.deleteBuff(b.id, b.character_id); }
+
+  private async loadStatusEffects(): Promise<void> {
+    try {
+      const effects = await this.supabase.client.from('status_effects').select('*').order('is_debuff');
+      this.statusEffects.set((effects.data ?? []) as StatusEffect[]);
+    } catch {}
+  }
 
   ngOnDestroy(): void { this.destroy$.next(); this.destroy$.complete(); }
 }

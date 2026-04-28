@@ -21,6 +21,7 @@ export type {
   BuffType,
   BuffSource,
   Buff,
+  StatusEffect,
   DiceRoll,
   DiceRollDetails,
   MessageType,

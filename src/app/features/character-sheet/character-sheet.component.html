@@ -126,43 +126,37 @@
         <!-- BUFF PILLS -->
         <div class="buffs-row">
           @for (bf of sheet()?.buffs ?? []; track bf.id) {
-            <span
-              class="buff-pill"
-              [class.debuff]="bf.type === 'debuff'"
-              [class.passive]="bf.type === 'passive'"
-            >
-              <span class="buff-pill-icon">{{
-                bf.type === 'debuff' ? '▼' : bf.type === 'passive' ? '◆' : '▲'
-              }}</span>
+            @let se = statusEffects().find(s => s.id === bf.status_effect_id);
+            <span class="buff-pill" [class.debuff]="bf.type === 'debuff'" [class.passive]="bf.type === 'passive'"
+              [style.background]="se?.color ? se?.color + '20' : ''" [style.borderColor]="se?.color ? se?.color + '40' : ''"
+              [style.color]="se?.color ?? ''">
+              <span class="buff-pill-icon" [innerHTML]="se?.icon || (bf.type === 'debuff' ? '▼' : bf.type === 'passive' ? '◆' : '▲')"></span>
               {{ bf.name }}
-              @if (auth.isMaster()) {
-                <button class="buff-pill-close" (click)="deleteBuff(bf)">×</button>
-              }
+              @if (auth.isMaster()) { <button class="buff-pill-close" (click)="deleteBuff(bf)">×</button> }
             </span>
           }
           @if (auth.isMaster()) {
-            <button
-              class="buff-add-btn"
-              (click)="showAddBuff.set(!showAddBuff())"
-              title="Adicionar efeito"
-            >
-              +
-            </button>
+            <button class="buff-add-btn" (click)="showAddBuff.set(!showAddBuff())" title="Adicionar efeito">+</button>
           }
           @if (showAddBuff()) {
-            <form
-              class="buff-add-form"
-              #bf
-              (submit)="
-                addBuff(bName.value, bDesc.value, +bDur.value); bf.reset(); showAddBuff.set(false)
-              "
-            >
-              <input #bName placeholder="Nome" size="8" />
-              <input #bDesc placeholder="Desc" size="10" />
-              <input #bDur type="number" value="0" style="width: 40px" />
-              <button type="submit">OK</button>
-            </form>
+            <div class="status-picker">
+              @for (se of statusEffects(); track se.id) {
+                <button class="status-item" [style.background]="se.color + '20'" [style.borderColor]="se.color + '40'"
+                  [style.color]="se.color" (click)="addBuff(se.name, se.description, se.is_debuff ? 3 : -1, se.id)">
+                  <span [innerHTML]="se.icon"></span> {{ se.name }}
+                </button>
+              }
+              <div class="status-custom">
+                <input #bName placeholder="Nome" size="8" />
+                <input #bDesc placeholder="Desc" size="10" />
+                <input #bDur type="number" value="0" style="width:40px" />
+                <button (click)="addBuff(bName.value, bDesc.value, +bDur.value)">OK</button>
+              </div>
+            </div>
           }
+       
+        
+
         </div>
       </div>
     </div>

@@ -1,375 +1,282 @@
-<div class="layout">
-  <app-sidebar />
+<div class="sheet-layout" [class.sidebar-collapsed]="!sidebarOpen()">
+  <app-sidebar [collapsible]="true" (toggled)="toggleSidebar()" />
 
-  <!-- Main Content -->
-  <main class="main" [formGroup]="form">
-    <!-- Character info panel (left side of main) -->
-    <aside class="char-panel">
-      <div class="panel-back">
-        <a routerLink="/stage">&#8592; Stage</a>
-        <a routerLink="/table">Personagens</a>
-      </div>
-      <div class="char-header">
-        <div class="char-avatar">
-          {{ sheet()?.character?.name?.charAt(0)?.toUpperCase() || '?' }}
-        </div>
-        <h2 class="char-name">{{ sheet()?.character?.name || 'Carregando...' }}</h2>
-        <p class="char-race">{{ sheet()?.character?.race || '—' }}</p>
-        <span class="char-xp">XP {{ sheet()?.character?.xp || 0 }}</span>
-      </div>
+  @if (!sidebarOpen()) {
+    <button class="sidebar-expand" (click)="toggleSidebar()" title="Abrir menu">&#10095;</button>
+  }
 
-      <div class="char-bars">
-        <div class="bar-group">
-          <div class="bar-label">HP</div>
-          <div class="bar-track"><div class="bar-fill hp" [style.width.%]="hpPercent()"></div></div>
-          <div class="bar-value">{{ sheet()?.character?.hp || 0 }}/{{ sheet()?.character?.hp_max || 0 }}</div>
-        </div>
-        <div class="bar-group">
-          <div class="bar-label">MP</div>
-          <div class="bar-track"><div class="bar-fill mana" [style.width.%]="manaPercent()"></div></div>
-          <div class="bar-value">{{ sheet()?.character?.mana || 0 }}/{{ sheet()?.character?.mana_max || 0 }}</div>
-        </div>
-      </div>
+  <div class="main-area" [formGroup]="form">
+    <!-- ═══ BACK LINK ═══ -->
+    <a class="back-link" routerLink="/table">&#8592; Personagens</a>
 
-      <nav class="char-tabs">
-        @for (t of tabs; track t) {
-          <button class="tab-item" [class.active]="activeTab() === t" (click)="activeTab.set(t)">
-            {{ tabLabel(t) }}
-            @if (t === 'buffs' && (sheet()?.buffs?.length ?? 0) > 0) {
-              <span class="tab-badge">{{ sheet()?.buffs?.length }}</span>
-            }
-          </button>
-        }
-      </nav>
-
-      <div class="char-mini-stats">
-        @for (s of stats; track s.key) {
-          <div class="mini-stat">
-            <span class="mini-label">{{ s.label }}</span>
-            <span class="mini-value">{{ sheet()?.character?.[s.key] || 0 }}</span>
-            <span class="mini-mod">({{ statMod(sheet()?.character?.[s.key] || 0) }})</span>
-          </div>
-        }
-      </div>
-    </aside>
-
-    <!-- Tab content -->
-    <div class="content-area">
     @if (remoteChanged()) {
-      <div class="remote-banner">
-        <span>Ficha atualizada remotamente</span>
-        <button (click)="acceptRemoteChanges()">Atualizar</button>
+      <button class="sync-btn" (click)="acceptRemoteChanges()">Ficha atualizada — clique para sincronizar</button>
+    }
+
+    <!-- ═══ TOP: Character Identity + Stats ═══ -->
+    <div class="identity-block">
+      <div class="portrait-large">
+        {{ sheet()?.character?.name?.charAt(0)?.toUpperCase() || '?' }}
       </div>
-    }
-
-    <!-- STATS TAB -->
-    @if (activeTab() === 'stats') {
-      <section class="section">
-        <h3>Informações</h3>
-        <div class="grid-2">
-          <label>
-            Nome
-            <input type="text" formControlName="name" [readonly]="!auth.isMaster()" />
-          </label>
-          <label>
-            Raça
-            <input type="text" formControlName="race" [readonly]="!auth.isMaster()" />
-          </label>
+      <div class="identity-info">
+        <h1>{{ sheet()?.character?.name || 'Personagem' }}</h1>
+        <div class="identity-tags">
+          <span class="tag race">{{ sheet()?.character?.race || '—' }}</span>
+          <span class="tag xp">Nv.{{ sheet()?.character?.xp || 0 }}</span>
         </div>
-
-        <h3>Combate</h3>
-        <div class="grid-3">
-          <label>
-            HP
-            <input type="number" formControlName="hp" min="0" />
-          </label>
-          <label>
-            HP Max
-            <input type="number" formControlName="hp_max" min="0" [readonly]="!auth.isMaster()" />
-          </label>
-          <label></label>
-          <label>
-            Magia
-            <input type="number" formControlName="magic" min="0" />
-          </label>
-          <label>
-            Magia Max
-            <input type="number" formControlName="magic_max" min="0" [readonly]="!auth.isMaster()" />
-          </label>
-          <label></label>
-          <label>
-            Mana
-            <input type="number" formControlName="mana" min="0" />
-          </label>
-          <label>
-            Mana Max
-            <input type="number" formControlName="mana_max" min="0" [readonly]="!auth.isMaster()" />
-          </label>
-          <label>
-            XP
-            <input type="number" formControlName="xp" min="0" [readonly]="!auth.isMaster()" />
-          </label>
+        <div class="bars-block">
+          <div class="bar-group">
+            <span class="bar-name">HP</span>
+            <div class="bar-track"><div class="bar-fill hp" [style.width.%]="hpPercent()"></div></div>
+            <span class="bar-num">{{ sheet()?.character?.hp || 0 }}/{{ sheet()?.character?.hp_max || 0 }}</span>
+          </div>
+          <div class="bar-group">
+            <span class="bar-name">MP</span>
+            <div class="bar-track"><div class="bar-fill mana" [style.width.%]="manaPercent()"></div></div>
+            <span class="bar-num">{{ sheet()?.character?.mana || 0 }}/{{ sheet()?.character?.mana_max || 0 }}</span>
+          </div>
         </div>
+      </div>
+    </div>
 
-        <h3>Atributos</h3>
-        <div class="grid-3">
-          @for (s of stats; track s.key) {
-            <label>
-              {{ s.label }}
-              <input type="number" [formControlName]="s.key" min="0" [readonly]="!auth.isMaster()" />
-            </label>
-          }
-        </div>
-      </section>
-    }
+    <!-- ═══ BODY: 3-column layout ═══ -->
+    <div class="body-row">
+      <!-- LEFT: Equipment Grid -->
+      <div class="equip-column">
+        <h2 class="section-title">Equipamentos</h2>
+        <div class="equip-grid">
+          @let hEq = getEquippedForSlot('head');
+          <div class="equip-cell head" [class.filled]="!!hEq">
+            <span class="equip-icon">&#9700;</span>
+            <span class="equip-label">Cabeça</span>
+            <span class="equip-name">{{ getItemName(hEq?.item_id ?? null) }}</span>
+          </div>
 
-    <!-- INVENTORY TAB -->
-    @if (activeTab() === 'inventory') {
-      <section class="section">
-        <div class="section-header">
-          <h3>Equipamentos</h3>
-        </div>
-        <div class="equipment-grid">
-          @for (slot of equipmentSlots; track slot.key) {
-            @let eq = getEquippedForSlot(slot.key);
-            <div class="equip-slot">
-              <span class="equip-icon" [innerHTML]="slot.icon"></span>
-              <div>
+          <div class="equip-row-body">
+            @let lhEq = getEquippedForSlot('left_hand');
+            <div class="equip-cell" [class.filled]="!!lhEq">
+              <span class="equip-icon">&#9754;</span>
+              <span class="equip-label">Mão Esq.</span>
+              <span class="equip-name">{{ getItemName(lhEq?.item_id ?? null) }}</span>
+            </div>
+
+            <div class="portrait-ring">
+              <div class="portrait-ring-inner">
+                {{ sheet()?.character?.name?.charAt(0)?.toUpperCase() || '?' }}
+              </div>
+            </div>
+
+            @let rhEq = getEquippedForSlot('right_hand');
+            <div class="equip-cell" [class.filled]="!!rhEq">
+              <span class="equip-icon">&#9755;</span>
+              <span class="equip-label">Mão Dir.</span>
+              <span class="equip-name">{{ getItemName(rhEq?.item_id ?? null) }}</span>
+            </div>
+          </div>
+
+          @let bEq = getEquippedForSlot('body');
+          <div class="equip-cell body" [class.filled]="!!bEq">
+            <span class="equip-icon">&#9863;</span>
+            <span class="equip-label">Corpo</span>
+            <span class="equip-name">{{ getItemName(bEq?.item_id ?? null) }}</span>
+          </div>
+
+          <div class="equip-row-bottom">
+            @for (slot of [
+              { key: 'gloves' , icon: '&#9730;', label: 'Luvas' },
+              { key: 'legs' , icon: '&#9724;', label: 'Pernas' },
+              { key: 'boots' , icon: '&#9734;', label: 'Botas' },
+              { key: 'accessory_1' , icon: '&#9733;', label: 'Acess.1' },
+              { key: 'accessory_2' , icon: '&#9733;', label: 'Acess.2' },
+            ]; track slot.key) {
+              @let eq = getEquippedForSlot(slot.key);
+              <div class="equip-cell" [class.filled]="!!eq">
+                <span class="equip-icon" [innerHTML]="slot.icon"></span>
                 <span class="equip-label">{{ slot.label }}</span>
-                <span class="equip-item">{{ getItemName(eq?.item_id ?? null) }}</span>
+                <span class="equip-name">{{ getItemName(eq?.item_id ?? null) }}</span>
               </div>
-              @if (auth.isMaster()) {
-                <select
-                  class="equip-select"
-                  (change)="equipToSlot($any($event.target).value, slot.key); $any($event.target).value = ''"
-                >
-                  <option value="">—</option>
-                  @for (item of sheet()?.items ?? []; track item.id) {
-                    <option [value]="item.id">{{ item.name }}</option>
-                  }
-                </select>
-                @if (eq) {
-                  <button class="icon-btn danger" (click)="unequipSlot(eq)" title="Desequipar">&times;</button>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- CENTER: Attributes Column -->
+      <div class="attr-column">
+        <h2 class="section-title">Atributos</h2>
+        <div class="attr-list">
+          @for (s of stats; track s.key) {
+            <div class="attr-cell">
+              <span class="attr-label">{{ s.label }}</span>
+              <span class="attr-value">{{ sheet()?.character?.[s.key] || 0 }}</span>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- RIGHT: Tabs Panel -->
+      <div class="tabs-column">
+        <div class="tab-bar">
+          @for (t of bottomTabs; track t.key) {
+            <button class="tab-btn" [class.active]="bottomTab() === t.key" (click)="bottomTab.set(t.key)">
+              {{ t.label }}
+            </button>
+          }
+        </div>
+        <div class="tab-body">
+
+
+        <!-- BUFFS -->
+        @if (bottomTab() === 'buffs') {
+          <div class="tab-grid">
+            @for (bf of sheet()?.buffs ?? []; track bf.id) {
+              <div class="buff-card" [class.debuff]="bf.type === 'debuff'" [class.passive]="bf.type === 'passive'">
+                <span class="buff-card-icon">{{ bf.type === 'debuff' ? '▼' : bf.type === 'passive' ? '◆' : '▲' }}</span>
+                <div>
+                  <strong>{{ bf.name }}</strong>
+                  @if (bf.description) { <small>{{ bf.description }}</small> }
+                </div>
+                <span class="buff-card-dur">{{ bf.duration === -1 ? '∞' : bf.duration + 'r' }}</span>
+                @if (auth.isMaster()) { <button class="btn-del" (click)="deleteBuff(bf)">×</button> }
+              </div>
+            }
+            @if (auth.isMaster()) {
+              <button class="btn-add-buff" (click)="showAddBuff.set(!showAddBuff())">+ Novo Efeito</button>
+            }
+            @if (showAddBuff()) {
+              <form class="inline-add" #bf (submit)="addBuff(bName.value, bDesc.value, +bDur.value); bf.reset()">
+                <input #bName placeholder="Nome" />
+                <input #bDesc placeholder="Desc" />
+                <input #bDur type="number" value="0" style="width:50px" />
+                <button type="submit">OK</button>
+              </form>
+            }
+          </div>
+        }
+
+        <!-- SKILLS -->
+        @if (bottomTab() === 'skills') {
+          <div class="tab-grid">
+            @for (sk of sheet()?.skills ?? []; track sk.id) {
+              <div class="skill-card" [class.proficient]="sk.proficient">
+                <span>{{ sk.name }}</span>
+                @if (sk.bonus) { <span class="skill-bonus">+{{ sk.bonus }}</span> }
+                @if (auth.isMaster()) {
+                  <button class="btn-sm" (click)="toggleSkill(sk)">{{ sk.proficient ? '★' : '☆' }}</button>
+                  <button class="btn-del" (click)="deleteSkill(sk)">×</button>
                 }
-              }
-            </div>
-          }
-        </div>
-
-        <div class="section-header">
-          <h3>Inventário</h3>
-          @if (auth.isMaster()) {
-            <button class="btn-sm" (click)="showAddItem.set(!showAddItem())">+ Item</button>
-          }
-        </div>
-
-        @if (showAddItem()) {
-          <form class="inline-add" #itemForm (submit)="addItem(iName.value, iDesc.value, +iQty.value); itemForm.reset()">
-            <input #iName placeholder="Nome" required />
-            <input #iDesc placeholder="Descrição" />
-            <input #iQty type="number" value="1" min="1" style="width:60px" />
-            <button type="submit" class="btn-sm primary">Adicionar</button>
-          </form>
-        }
-
-        @if ((sheet()?.items?.length ?? 0) === 0) {
-          <p class="empty">Nenhum item</p>
-        }
-        @for (item of sheet()?.items ?? []; track item.id) {
-          <div class="row">
-            <div class="row-info">
-              <strong>{{ item.name }}</strong>
-              @if (item.description) { <span class="muted">{{ item.description }}</span> }
-            </div>
-            @if (auth.isMaster()) {
-              <div class="row-actions">
-                <button class="btn-sm" (click)="updateItemQty(item, -1)">−</button>
-                <span>{{ item.quantity }}</span>
-                <button class="btn-sm" (click)="updateItemQty(item, 1)">+</button>
-                <button class="btn-sm danger" (click)="deleteItem(item)">&times;</button>
               </div>
             }
+            @if (auth.isMaster()) {
+              <button class="btn-add-buff" (click)="showAddSkill.set(!showAddSkill())">+ Nova Perícia</button>
+            }
+            @if (showAddSkill()) {
+              <form class="inline-add" #sf (submit)="addSkill(sName.value, +sBonus.value); sf.reset()">
+                <input #sName placeholder="Nome" />
+                <input #sBonus type="number" value="0" style="width:50px" />
+                <button type="submit">OK</button>
+              </form>
+            }
           </div>
         }
-      </section>
-    }
 
-    <!-- SKILLS TAB -->
-    @if (activeTab() === 'skills') {
-      <section class="section">
-        <div class="section-header">
-          <h3>Perícias</h3>
-          @if (auth.isMaster()) {
-            <button class="btn-sm" (click)="showAddSkill.set(!showAddSkill())">+ Perícia</button>
-          }
-        </div>
-
-        @if (showAddSkill()) {
-          <form class="inline-add" #sf (submit)="addSkill(sName.value, +sBonus.value); sf.reset()">
-            <input #sName placeholder="Nome" required />
-            <input #sBonus type="number" value="0" style="width:60px" placeholder="Bônus" />
-            <button type="submit" class="btn-sm primary">Adicionar</button>
-          </form>
-        }
-
-        @if ((sheet()?.skills?.length ?? 0) === 0) {
-          <p class="empty">Nenhuma perícia</p>
-        }
-        @for (sk of sheet()?.skills ?? []; track sk.id) {
-          <div class="row">
-            <div class="row-info">
-              <strong>{{ sk.name }}</strong>
-              @if (sk.bonus) { <span class="muted">+{{ sk.bonus }}</span> }
-            </div>
-            @if (auth.isMaster()) {
-              <div class="row-actions">
-                <button
-                  class="btn-sm"
-                  [class.toggle-on]="sk.proficient"
-                  (click)="toggleSkill(sk)"
-                >
-                  {{ sk.proficient ? 'Treinado' : 'Não treinado' }}
-                </button>
-                <button class="btn-sm danger" (click)="deleteSkill(sk)">&times;</button>
+        <!-- INVENTORY -->
+        @if (bottomTab() === 'inventory') {
+          <div class="tab-grid">
+            @for (item of sheet()?.items ?? []; track item.id) {
+              <div class="item-card">
+                <span class="item-card-icon">&#9876;</span>
+                <div class="item-card-info">
+                  <strong>{{ item.name }}</strong>
+                  @if (item.description) { <small>{{ item.description }}</small> }
+                </div>
+                @if (auth.isMaster()) {
+                  <div class="qty-ctrl">
+                    <button (click)="updateItemQty(item, -1)">−</button>
+                    <span>{{ item.quantity }}</span>
+                    <button (click)="updateItemQty(item, 1)">+</button>
+                  </div>
+                  <button class="btn-del" (click)="deleteItem(item)">×</button>
+                }
               </div>
             }
-          </div>
-        }
-      </section>
-    }
-
-    <!-- ABILITIES TAB -->
-    @if (activeTab() === 'abilities') {
-      <section class="section">
-        <div class="section-header">
-          <h3>Habilidades</h3>
-          @if (auth.isMaster()) {
-            <button class="btn-sm" (click)="showAddAbility.set(!showAddAbility())">+ Habilidade</button>
-          }
-        </div>
-
-        @if (showAddAbility()) {
-          <form class="inline-add" #af (submit)="addAbility(aName.value, aDesc.value); af.reset()">
-            <input #aName placeholder="Nome" required />
-            <input #aDesc placeholder="Descrição" />
-            <button type="submit" class="btn-sm primary">Adicionar</button>
-          </form>
-        }
-
-        @if ((sheet()?.abilities?.length ?? 0) === 0) {
-          <p class="empty">Nenhuma habilidade</p>
-        }
-        @for (ab of sheet()?.abilities ?? []; track ab.id) {
-          <div class="card-sm">
-            <div class="card-sm-header">
-              <strong>{{ ab.name }}</strong>
-              @if (auth.isMaster()) {
-                <button class="icon-btn danger" (click)="deleteAbility(ab)">&times;</button>
-              }
-            </div>
-            @if (ab.description) {
-              <p class="muted card-sm-desc">{{ ab.description }}</p>
+            @if (auth.isMaster()) {
+              <button class="btn-add-buff" (click)="showAddItem.set(!showAddItem())">+ Novo Item</button>
+            }
+            @if (showAddItem()) {
+              <form class="inline-add" #itemForm (submit)="addItem(iName.value, iDesc.value, +iQty.value); itemForm.reset()">
+                <input #iName placeholder="Nome" />
+                <input #iDesc placeholder="Desc" />
+                <input #iQty type="number" value="1" min="1" style="width:50px" />
+                <button type="submit">OK</button>
+              </form>
             }
           </div>
         }
-      </section>
-    }
 
-    <!-- SPELLS TAB -->
-    @if (activeTab() === 'spells') {
-      <section class="section">
-        <div class="section-header">
-          <h3>Magias</h3>
-          @if (auth.isMaster()) {
-            <button class="btn-sm" (click)="showAddSpell.set(!showAddSpell())">+ Magia</button>
-          }
-        </div>
-
-        @if (showAddSpell()) {
-          <form class="inline-add" #spf (submit)="addSpell(spName.value, spDesc.value, +spCost.value); spf.reset()">
-            <input #spName placeholder="Nome" required />
-            <input #spDesc placeholder="Descrição" />
-            <input #spCost type="number" value="0" min="0" style="width:60px" placeholder="Mana" />
-            <button type="submit" class="btn-sm primary">Adicionar</button>
-          </form>
-        }
-
-        @if ((sheet()?.spells?.length ?? 0) === 0) {
-          <p class="empty">Nenhuma magia</p>
-        }
-        @for (sp of sheet()?.spells ?? []; track sp.id) {
-          <div class="card-sm">
-            <div class="card-sm-header">
-              <strong>{{ sp.name }}</strong>
-              <span class="mana-tag">{{ sp.mana_cost }} mana</span>
-              @if (auth.isMaster()) {
-                <button class="icon-btn danger" (click)="deleteSpell(sp)">&times;</button>
-              }
-            </div>
-            @if (sp.description) {
-              <p class="muted card-sm-desc">{{ sp.description }}</p>
+        <!-- ABILITIES -->
+        @if (bottomTab() === 'abilities') {
+          <div class="tab-grid">
+            @for (ab of sheet()?.abilities ?? []; track ab.id) {
+              <div class="item-card">
+                <span class="item-card-icon">&#9889;</span>
+                <div class="item-card-info">
+                  <strong>{{ ab.name }}</strong>
+                  @if (ab.description) { <small>{{ ab.description }}</small> }
+                </div>
+                @if (auth.isMaster()) { <button class="btn-del" (click)="deleteAbility(ab)">×</button> }
+              </div>
+            }
+            @if (auth.isMaster()) {
+              <button class="btn-add-buff" (click)="showAddAbility.set(!showAddAbility())">+ Nova Habilidade</button>
+            }
+            @if (showAddAbility()) {
+              <form class="inline-add" #af (submit)="addAbility(aName.value, aDesc.value); af.reset()">
+                <input #aName placeholder="Nome" />
+                <input #aDesc placeholder="Desc" />
+                <button type="submit">OK</button>
+              </form>
             }
           </div>
         }
-      </section>
-    }
 
-    <!-- BUFFS TAB -->
-    @if (activeTab() === 'buffs') {
-      <section class="section">
-        <div class="section-header">
-          <h3>Buffs & Debuffs</h3>
-          @if (auth.isMaster()) {
-            <button class="btn-sm" (click)="showAddBuff.set(!showAddBuff())">+ Efeito</button>
-          }
-        </div>
-
-        @if (showAddBuff()) {
-          <form class="inline-add" #bf (submit)="addBuff(bName.value, bDesc.value, +bDur.value); bf.reset()">
-            <input #bName placeholder="Nome" required />
-            <input #bDesc placeholder="Descrição" />
-            <input #bDur type="number" value="0" style="width:60px" placeholder="-1=perm" />
-            <button type="submit" class="btn-sm primary">Adicionar</button>
-          </form>
-        }
-
-        @if ((sheet()?.buffs?.length ?? 0) === 0) {
-          <p class="empty">Nenhum efeito ativo</p>
-        }
-        @for (bf of sheet()?.buffs ?? []; track bf.id) {
-          <div class="card-sm buff-card" [class.debuff]="bf.type === 'debuff'" [class.passive]="bf.type === 'passive'">
-            <div class="card-sm-header">
-              <strong>
-                <span class="buff-icon">{{ bf.type === 'debuff' ? '&#9660;' : bf.type === 'passive' ? '&#9670;' : '&#9650;' }}</span>
-                {{ bf.name }}
-              </strong>
-              <span class="buff-dur">{{ bf.duration === -1 ? 'Permanente' : bf.duration + ' rodadas' }}</span>
-              @if (auth.isMaster()) {
-                <button class="icon-btn danger" (click)="deleteBuff(bf)">&times;</button>
-              }
-            </div>
-            @if (bf.description) {
-              <p class="muted card-sm-desc">{{ bf.description }}</p>
+        <!-- SPELLS -->
+        @if (bottomTab() === 'spells') {
+          <div class="tab-grid">
+            @for (sp of sheet()?.spells ?? []; track sp.id) {
+              <div class="item-card">
+                <span class="item-card-icon">&#9733;</span>
+                <div class="item-card-info">
+                  <strong>{{ sp.name }}</strong>
+                  <small>{{ sp.mana_cost }} MP @if (sp.description) { — {{ sp.description }} }</small>
+                </div>
+                @if (auth.isMaster()) { <button class="btn-del" (click)="deleteSpell(sp)">×</button> }
+              </div>
+            }
+            @if (auth.isMaster()) {
+              <button class="btn-add-buff" (click)="showAddSpell.set(!showAddSpell())">+ Nova Magia</button>
+            }
+            @if (showAddSpell()) {
+              <form class="inline-add" #spf (submit)="addSpell(spName.value, spDesc.value, +spCost.value); spf.reset()">
+                <input #spName placeholder="Nome" />
+                <input #spDesc placeholder="Desc" />
+                <input #spCost type="number" value="0" min="0" style="width:50px" placeholder="MP" />
+                <button type="submit">OK</button>
+              </form>
             }
           </div>
         }
-      </section>
-    }
 
-    <!-- NOTES TAB -->
-    @if (activeTab() === 'notes') {
-      <section class="section">
-        <h3>Notas</h3>
-        <textarea formControlName="notes" rows="10" placeholder="Anotações do personagem..."></textarea>
-
-        <h3>Biografia</h3>
-        <textarea formControlName="biography" rows="6" placeholder="História do personagem..." [readonly]="!auth.isMaster()"></textarea>
-      </section>
-    }
+        <!-- NOTES -->
+        <div class="notes-area">
+          <h3>Notas</h3>
+          <textarea formControlName="notes" rows="3" placeholder="Anotações do personagem..."></textarea>
+        </div>
+        </div><!-- /tab-body -->
+      </div><!-- /tabs-column -->
+    </div><!-- /body-row -->
 
     @if (saving()) {
       <div class="toast">Salvando...</div>
     }
-    </div><!-- /content-area -->
-  </main>
+  </div>
 </div>

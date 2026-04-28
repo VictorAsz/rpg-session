@@ -12,8 +12,11 @@ import type { ItemCatalog } from '../../shared/models/rpg-models';
   selector: 'app-items-catalog',
   imports: [ReactiveFormsModule, AsyncPipe, RouterLink, AppSidebarComponent],
   template: `
-    <div class="layout">
-      <app-sidebar />
+    <div class="layout" [class.sidebar-collapsed]="!sidebarOpen()">
+      <app-sidebar [collapsible]="true" (toggled)="toggleSidebar()" />
+      @if (!sidebarOpen()) {
+        <button class="sidebar-expand" (click)="toggleSidebar()" title="Abrir menu">&#10095;</button>
+      }
 
       <!-- MAIN -->
       <main class="main">
@@ -103,6 +106,16 @@ import type { ItemCatalog } from '../../shared/models/rpg-models';
     :host { display: block; height: 100dvh; }
 
     .layout { display: flex; height: 100%; }
+    .layout.sidebar-collapsed app-sidebar { display: none; }
+    .sidebar-expand {
+      position: fixed; left: 0; top: 50%; transform: translateY(-50%);
+      width: 30px; height: 40px; border: 1px solid var(--theme-border);
+      border-radius: 0 var(--theme-radius-sm) var(--theme-radius-sm) 0;
+      background: var(--theme-surface); color: var(--theme-text-muted);
+      cursor: pointer; font-size: 0.6rem; display: flex; align-items: center; justify-content: center;
+      z-index: 20; transition: all var(--theme-transition);
+    }
+    .sidebar-expand:hover { color: var(--theme-text); }
     .main { flex: 1; overflow-y: auto; padding: 1.75rem 2rem; }
     .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; }
     h2 { margin: 0; font-size: 1.35rem; color: var(--theme-heading); font-weight: 600; }
@@ -256,6 +269,8 @@ export class ItemsCatalogComponent {
 
   readonly showForm = signal(false);
   readonly editingId = signal<string | null>(null);
+  readonly sidebarOpen = signal(true);
+  toggleSidebar(): void { this.sidebarOpen.set(!this.sidebarOpen()); }
 
   readonly itemForm = this.fb.group({
     name: ['', Validators.required],

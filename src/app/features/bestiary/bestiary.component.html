@@ -1,5 +1,8 @@
-<div class="layout">
-  <app-sidebar />
+<div class="layout" [class.sidebar-collapsed]="!sidebarOpen()">
+  <app-sidebar [collapsible]="true" (toggled)="toggleSidebar()" />
+  @if (!sidebarOpen()) {
+    <button class="sidebar-expand" (click)="toggleSidebar()" title="Abrir menu">&#10095;</button>
+  }
 
   <main class="main">
     <header class="header">

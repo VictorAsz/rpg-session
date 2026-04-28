@@ -27,7 +27,8 @@
 .sidebar-expand {
   position: fixed;
   left: 0;
-  top: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
   width: 34px;
   height: 34px;
   border: 1px solid var(--theme-border);

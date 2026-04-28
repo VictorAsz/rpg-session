@@ -19,18 +19,6 @@ import type {
   EquipmentSlot,
 } from '../../shared/models/rpg-models';
 
-const EQUIPMENT_SLOTS: { key: EquipmentSlot; label: string; icon: string }[] = [
-  { key: 'head', label: 'Cabeça', icon: '&#9700;' },
-  { key: 'body', label: 'Corpo', icon: '&#9863;' },
-  { key: 'left_hand', label: 'Mão Esq.', icon: '&#9754;' },
-  { key: 'right_hand', label: 'Mão Dir.', icon: '&#9755;' },
-  { key: 'gloves', label: 'Luvas', icon: '&#9730;' },
-  { key: 'legs', label: 'Pernas', icon: '&#9724;' },
-  { key: 'boots', label: 'Botas', icon: '&#9734;' },
-  { key: 'accessory_1', label: 'Aces. 1', icon: '&#9733;' },
-  { key: 'accessory_2', label: 'Aces. 2', icon: '&#9733;' },
-];
-
 const STATS = [
   { key: 'strength' as const, label: 'Força' },
   { key: 'dexterity' as const, label: 'Destreza' },
@@ -65,7 +53,16 @@ export class CharacterSheetComponent implements OnDestroy {
   private readonly store = inject(CharacterStore);
   private readonly destroy$ = new Subject<void>();
 
+  readonly sidebarOpen = signal(true);
   readonly activeTab = signal<'stats' | 'inventory' | 'skills' | 'abilities' | 'spells' | 'buffs' | 'notes'>('stats');
+  readonly bottomTab = signal<'buffs' | 'skills' | 'inventory' | 'abilities' | 'spells'>('buffs');
+  readonly bottomTabs: { key: 'buffs' | 'skills' | 'inventory' | 'abilities' | 'spells'; label: string }[] = [
+    { key: 'buffs', label: 'Efeitos' },
+    { key: 'skills', label: 'Perícias' },
+    { key: 'inventory', label: 'Inventário' },
+    { key: 'abilities', label: 'Habilidades' },
+    { key: 'spells', label: 'Magias' },
+  ];
   readonly remoteChanged = signal(false);
   readonly saving = signal(false);
   readonly showAddSkill = signal(false);
@@ -117,6 +114,10 @@ export class CharacterSheetComponent implements OnDestroy {
         distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b)),
       )
       .subscribe(() => this.save());
+  }
+
+  toggleSidebar(): void {
+    this.sidebarOpen.set(!this.sidebarOpen());
   }
 
   // ── Realtime Merge ──────────────────────────────────────────────────
@@ -192,19 +193,7 @@ export class CharacterSheetComponent implements OnDestroy {
 
   // ── Tab Helpers ─────────────────────────────────────────────────────
 
-  readonly tabs: Array<'stats' | 'inventory' | 'skills' | 'abilities' | 'spells' | 'buffs' | 'notes'> =
-    ['stats', 'skills', 'abilities', 'spells', 'inventory', 'buffs', 'notes'];
-
-  tabLabel(t: string): string {
-    const m: Record<string, string> = {
-      stats: 'Atributos', inventory: 'Inventário', skills: 'Perícias',
-      abilities: 'Habilidades', spells: 'Magias', buffs: 'Buffs', notes: 'Notas',
-    };
-    return m[t] ?? t;
-  }
-
   get sheetData() { return this.sheet(); }
-  get equipmentSlots() { return EQUIPMENT_SLOTS; }
   get stats() { return STATS; }
 
   // ── Computed ────────────────────────────────────────────────────────
@@ -228,7 +217,7 @@ export class CharacterSheetComponent implements OnDestroy {
 
   // ── Equipment ───────────────────────────────────────────────────────
 
-  getEquippedForSlot(slot: EquipmentSlot): EquippedItem | undefined {
+  getEquippedForSlot(slot: string): EquippedItem | undefined {
     return this.sheet()?.equipment.find((e) => e.slot === slot);
   }
 

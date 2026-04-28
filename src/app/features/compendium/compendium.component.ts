@@ -16,8 +16,11 @@ type TabMode = 'spells' | 'abilities';
   selector: 'app-compendium',
   imports: [ReactiveFormsModule, AsyncPipe, RouterLink, AppSidebarComponent],
   template: `
-    <div class="layout">
-      <app-sidebar />
+    <div class="layout" [class.sidebar-collapsed]="!sidebarOpen()">
+      <app-sidebar [collapsible]="true" (toggled)="toggleSidebar()" />
+      @if (!sidebarOpen()) {
+        <button class="sidebar-expand" (click)="toggleSidebar()" title="Abrir menu">&#10095;</button>
+      }
 
       <main class="main">
         <header class="header">
@@ -220,6 +223,16 @@ type TabMode = 'spells' | 'abilities';
   styles: `
     :host { display: block; height: 100dvh; background: var(--theme-bg); color: var(--theme-text); font-family: var(--theme-font); }
     .layout { display: flex; height: 100%; }
+    .layout.sidebar-collapsed app-sidebar { display: none; }
+    .sidebar-expand {
+      position: fixed; left: 0; top: 50%; transform: translateY(-50%);
+      width: 30px; height: 40px; border: 1px solid var(--theme-border);
+      border-radius: 0 var(--theme-radius-sm) var(--theme-radius-sm) 0;
+      background: var(--theme-surface); color: var(--theme-text-muted);
+      cursor: pointer; font-size: 0.6rem; display: flex; align-items: center; justify-content: center;
+      z-index: 20; transition: all var(--theme-transition);
+    }
+    .sidebar-expand:hover { color: var(--theme-text); }
     .main { flex: 1; overflow-y: auto; padding: 1.5rem 2rem; }
     .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
     .mode-tabs { display: flex; gap: 0.25rem; background: var(--theme-surface-hover); border-radius: var(--theme-radius-sm); padding: 0.2rem; }
@@ -266,6 +279,8 @@ export class CompendiumComponent {
   private readonly fb = inject(FormBuilder);
 
   readonly mode = signal<TabMode>('spells');
+  readonly sidebarOpen = signal(true);
+  toggleSidebar(): void { this.sidebarOpen.set(!this.sidebarOpen()); }
   readonly schools = MAGIC_SCHOOLS;
   readonly showSpellForm = signal(false);
   readonly showAbilityForm = signal(false);

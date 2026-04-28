@@ -37,6 +37,8 @@ export class BestiaryComponent implements OnDestroy {
 
   // ── View state ──────────────────────────────────────────────────────
   readonly showForm = signal(false);
+  readonly sidebarOpen = signal(true);
+  toggleSidebar(): void { this.sidebarOpen.set(!this.sidebarOpen()); }
   readonly editingId = signal<string | null>(null);
   readonly activeSection = signal<FormSection>('basic');
   readonly quickView = signal<Creature | null>(null);

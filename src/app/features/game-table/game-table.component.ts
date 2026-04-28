@@ -12,8 +12,11 @@ import { CharacterStore } from '../../domain/character/services/character.store'
   selector: 'app-game-table',
   imports: [RouterLink, AsyncPipe, ReactiveFormsModule, AppSidebarComponent],
   template: `
-    <div class="layout">
-      <app-sidebar />
+    <div class="layout" [class.sidebar-collapsed]="!sidebarOpen()">
+      <app-sidebar [collapsible]="true" (toggled)="toggleSidebar()" />
+      @if (!sidebarOpen()) {
+        <button class="sidebar-expand" (click)="toggleSidebar()" title="Abrir menu">&#10095;</button>
+      }
 
       <main class="main">
         <header class="header">
@@ -125,6 +128,18 @@ import { CharacterStore } from '../../domain/character/services/character.store'
       background: var(--theme-bg);
       color: var(--theme-text);
     }
+
+    .layout.sidebar-collapsed app-sidebar { display: none; }
+
+    .sidebar-expand {
+      position: fixed; left: 0; top: 50%; transform: translateY(-50%);
+      width: 30px; height: 40px;
+      border: 1px solid var(--theme-border); border-radius: 0 var(--theme-radius-sm) var(--theme-radius-sm) 0;
+      background: var(--theme-surface); color: var(--theme-text-muted);
+      cursor: pointer; font-size: 0.6rem; display: flex; align-items: center; justify-content: center;
+      z-index: 20; transition: all var(--theme-transition);
+    }
+    .sidebar-expand:hover { color: var(--theme-text); background: var(--theme-surface-hover); }
 
     /* Main */
     .main {
@@ -406,6 +421,9 @@ export class GameTableComponent implements OnDestroy {
   readonly showCreate = signal(false);
   readonly creating = signal(false);
   readonly deleteTarget = signal<{ id: string; name: string } | null>(null);
+  readonly sidebarOpen = signal(true);
+
+  toggleSidebar(): void { this.sidebarOpen.set(!this.sidebarOpen()); }
 
   readonly createForm = this.fb.group({
     name: ['', [Validators.required, Validators.minLength(2)]],

@@ -13,9 +13,37 @@
 
     <!-- ═══ IDENTITY + BUFF PILLS ═══ -->
     <div class="identity-block">
-      <div class="portrait-large">
-        {{ sheet()?.character?.name?.charAt(0)?.toUpperCase() || '?' }}
-      </div>
+      @if (editMode()) {
+        <div class="portrait-large portrait-editable" (click)="editImage()" title="Clique para alterar imagem">
+          @if (imagePreview()) {
+            <img [src]="imagePreview()!" alt="" />
+          } @else {
+            {{ sheet()?.character?.name?.charAt(0)?.toUpperCase() || '?' }}
+          }
+        </div>
+      } @else {
+        <div class="portrait-large">
+          @if (imagePreview()) {
+            <img [src]="imagePreview()!" alt="" />
+          } @else {
+            {{ sheet()?.character?.name?.charAt(0)?.toUpperCase() || '?' }}
+          }
+        </div>
+      }
+      @if (showImageInput()) {
+        <div class="image-input-overlay" (click)="showImageInput.set(false)">
+          <div class="image-input-modal" (click)="$event.stopPropagation()">
+            <h4>URL da Imagem</h4>
+            <input #imgUrl type="text" [value]="form.controls['photo_url'].value"
+              placeholder="https://..."
+              (keyup.enter)="saveImageUrl(imgUrl.value)" />
+            <div class="modal-actions">
+              <button class="btn-ghost" (click)="showImageInput.set(false)">Cancelar</button>
+              <button class="btn-primary" (click)="saveImageUrl(imgUrl.value)">OK</button>
+            </div>
+          </div>
+        </div>
+      }
       <div class="identity-info">
         <div class="identity-row">
           @if (editMode()) {

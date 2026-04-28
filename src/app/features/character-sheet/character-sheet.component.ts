@@ -54,6 +54,18 @@ export class CharacterSheetComponent implements OnDestroy {
   // Add modals
   readonly showAddModal = signal<'item' | 'skill' | 'ability' | 'spell' | null>(null);
   readonly showAddBuff = signal(false);
+  readonly imagePreview = signal<string | null>(null);
+  readonly showImageInput = signal(false);
+
+  editImage(): void { this.showImageInput.set(true); }
+
+  async saveImageUrl(url: string): Promise<void> {
+    const id = this.characterId(); if (!id) return;
+    this.form.controls['photo_url'].setValue(url);
+    this.imagePreview.set(url || null);
+    this.showImageInput.set(false);
+    await this.characterService.updateCharacter(id, { photo_url: url } as Partial<Character>);
+  }
   readonly addForm = this.fb.group({
     name: ['', Validators.required],
     detail: [''],
@@ -67,6 +79,7 @@ export class CharacterSheetComponent implements OnDestroy {
   constructor() {
     this.form = this.fb.group({
       name: ['', [Validators.required]], race: [''],
+      photo_url: [''],
       notes: [''],
       hp: [0, [Validators.min(0)]], hp_max: [0, [Validators.min(0)]],
       mana: [0, [Validators.min(0)]], mana_max: [0, [Validators.min(0)]],
@@ -110,11 +123,12 @@ export class CharacterSheetComponent implements OnDestroy {
 
   private patchFromCharacter(char: Character): void {
     this.form.patchValue({
-      name: char.name, race: char.race, notes: char.notes,
+      name: char.name, race: char.race, photo_url: char.photo_url ?? '', notes: char.notes,
       hp: char.hp, hp_max: char.hp_max, mana: char.mana, mana_max: char.mana_max, xp: char.xp,
       strength: char.strength, dexterity: char.dexterity,
       constitution: char.constitution, intelligence: char.intelligence, wisdom: char.wisdom,
     }, { emitEvent: false });
+    this.imagePreview.set(char.photo_url || null);
     this.form.markAsPristine();
   }
 
@@ -125,7 +139,7 @@ export class CharacterSheetComponent implements OnDestroy {
   private async save(): Promise<void> {
     const id = this.characterId(); if (!id) return;
     const v = this.form.getRawValue();
-    const changes: Partial<Character> = { name: v.name, race: v.race, notes: v.notes, hp: v.hp, mana: v.mana, xp: v.xp };
+    const changes: Partial<Character> = { name: v.name, race: v.race, photo_url: v.photo_url, notes: v.notes, hp: v.hp, mana: v.mana, xp: v.xp };
     if (this.auth.isMaster()) {
       Object.assign(changes, { hp_max: v.hp_max, mana_max: v.mana_max, strength: v.strength, dexterity: v.dexterity, constitution: v.constitution, intelligence: v.intelligence, wisdom: v.wisdom });
     }

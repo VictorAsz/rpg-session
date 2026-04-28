@@ -8,13 +8,19 @@
     <a class="back-link" routerLink="/table">&#8592; Personagens</a>
 
     @if (remoteChanged()) {
-      <button class="sync-btn" (click)="acceptRemoteChanges()">Ficha atualizada — clique para sincronizar</button>
+      <button class="sync-btn" (click)="acceptRemoteChanges()">
+        Ficha atualizada — clique para sincronizar
+      </button>
     }
 
     <!-- ═══ IDENTITY + BUFF PILLS ═══ -->
     <div class="identity-block">
       @if (editMode()) {
-        <div class="portrait-large portrait-editable" (click)="editImage()" title="Clique para alterar imagem">
+        <div
+          class="portrait-large portrait-editable"
+          (click)="editImage()"
+          title="Clique para alterar imagem"
+        >
           @if (imagePreview()) {
             <img [src]="imagePreview()!" alt="" />
           } @else {
@@ -34,9 +40,13 @@
         <div class="image-input-overlay" (click)="showImageInput.set(false)">
           <div class="image-input-modal" (click)="$event.stopPropagation()">
             <h4>URL da Imagem</h4>
-            <input #imgUrl type="text" [value]="form.controls['photo_url'].value"
+            <input
+              #imgUrl
+              type="text"
+              [value]="form.controls['photo_url'].value"
               placeholder="https://..."
-              (keyup.enter)="saveImageUrl(imgUrl.value)" />
+              (keyup.enter)="saveImageUrl(imgUrl.value)"
+            />
             <div class="modal-actions">
               <button class="btn-ghost" (click)="showImageInput.set(false)">Cancelar</button>
               <button class="btn-primary" (click)="saveImageUrl(imgUrl.value)">OK</button>
@@ -52,7 +62,11 @@
           } @else {
             <h1>{{ sheet()?.character?.name || 'Personagem' }}</h1>
           }
-          <button class="edit-toggle" (click)="toggleEdit()" [title]="editMode() ? 'Bloquear edição' : 'Habilitar edição'">
+          <button
+            class="edit-toggle"
+            (click)="toggleEdit()"
+            [title]="editMode() ? 'Bloquear edição' : 'Habilitar edição'"
+          >
             {{ editMode() ? '✓' : '✎' }}
           </button>
         </div>
@@ -67,24 +81,44 @@
         <div class="bars-block">
           <div class="bar-group">
             <span class="bar-name">HP</span>
-            <div class="bar-track"><div class="bar-fill hp" [style.width.%]="hpPercent()"></div></div>
+            <div class="bar-track">
+              <div class="bar-fill hp" [style.width.%]="hpPercent()"></div>
+            </div>
             @if (editMode()) {
               <input class="bar-input" type="number" formControlName="hp" min="0" />
               <span class="bar-input-sep">/</span>
-              <input class="bar-input" type="number" formControlName="hp_max" min="0" [readonly]="!auth.isMaster()" />
+              <input
+                class="bar-input"
+                type="number"
+                formControlName="hp_max"
+                min="0"
+                [readonly]="!auth.isMaster()"
+              />
             } @else {
-              <span class="bar-num">{{ sheet()?.character?.hp || 0 }}/{{ sheet()?.character?.hp_max || 0 }}</span>
+              <span class="bar-num"
+                >{{ sheet()?.character?.hp || 0 }}/{{ sheet()?.character?.hp_max || 0 }}</span
+              >
             }
           </div>
           <div class="bar-group">
             <span class="bar-name">MP</span>
-            <div class="bar-track"><div class="bar-fill mana" [style.width.%]="manaPercent()"></div></div>
+            <div class="bar-track">
+              <div class="bar-fill mana" [style.width.%]="manaPercent()"></div>
+            </div>
             @if (editMode()) {
               <input class="bar-input" type="number" formControlName="mana" min="0" />
               <span class="bar-input-sep">/</span>
-              <input class="bar-input" type="number" formControlName="mana_max" min="0" [readonly]="!auth.isMaster()" />
+              <input
+                class="bar-input"
+                type="number"
+                formControlName="mana_max"
+                min="0"
+                [readonly]="!auth.isMaster()"
+              />
             } @else {
-              <span class="bar-num">{{ sheet()?.character?.mana || 0 }}/{{ sheet()?.character?.mana_max || 0 }}</span>
+              <span class="bar-num"
+                >{{ sheet()?.character?.mana || 0 }}/{{ sheet()?.character?.mana_max || 0 }}</span
+              >
             }
           </div>
         </div>
@@ -92,20 +126,40 @@
         <!-- BUFF PILLS -->
         <div class="buffs-row">
           @for (bf of sheet()?.buffs ?? []; track bf.id) {
-            <span class="buff-pill" [class.debuff]="bf.type === 'debuff'" [class.passive]="bf.type === 'passive'">
-              <span class="buff-pill-icon">{{ bf.type === 'debuff' ? '▼' : bf.type === 'passive' ? '◆' : '▲' }}</span>
+            <span
+              class="buff-pill"
+              [class.debuff]="bf.type === 'debuff'"
+              [class.passive]="bf.type === 'passive'"
+            >
+              <span class="buff-pill-icon">{{
+                bf.type === 'debuff' ? '▼' : bf.type === 'passive' ? '◆' : '▲'
+              }}</span>
               {{ bf.name }}
-              @if (auth.isMaster()) { <button class="buff-pill-close" (click)="deleteBuff(bf)">×</button> }
+              @if (auth.isMaster()) {
+                <button class="buff-pill-close" (click)="deleteBuff(bf)">×</button>
+              }
             </span>
           }
           @if (auth.isMaster()) {
-            <button class="buff-add-btn" (click)="showAddBuff.set(!showAddBuff())" title="Adicionar efeito">+</button>
+            <button
+              class="buff-add-btn"
+              (click)="showAddBuff.set(!showAddBuff())"
+              title="Adicionar efeito"
+            >
+              +
+            </button>
           }
           @if (showAddBuff()) {
-            <form class="buff-add-form" #bf (submit)="addBuff(bName.value, bDesc.value, +bDur.value); bf.reset(); showAddBuff.set(false)">
+            <form
+              class="buff-add-form"
+              #bf
+              (submit)="
+                addBuff(bName.value, bDesc.value, +bDur.value); bf.reset(); showAddBuff.set(false)
+              "
+            >
               <input #bName placeholder="Nome" size="8" />
               <input #bDesc placeholder="Desc" size="10" />
-              <input #bDur type="number" value="0" style="width:40px" />
+              <input #bDur type="number" value="0" style="width: 40px" />
               <button type="submit">OK</button>
             </form>
           }
@@ -131,31 +185,16 @@
                 <span class="equip-icon">&#9754;</span><span class="equip-label">Mão Esq.</span>
                 <span class="equip-name">{{ getItemName(lhEq?.item_id ?? null) }}</span>
               </div>
+              @let bEq = getEquippedForSlot('body');
+              <div class="equip-cell" [class.filled]="!!bEq">
+                <span class="equip-icon">&#9863;</span><span class="equip-label">Corpo</span>
+                <span class="equip-name">{{ getItemName(bEq?.item_id ?? null) }}</span>
+              </div>
               @let rhEq = getEquippedForSlot('right_hand');
               <div class="equip-cell" [class.filled]="!!rhEq">
                 <span class="equip-icon">&#9755;</span><span class="equip-label">Mão Dir.</span>
                 <span class="equip-name">{{ getItemName(rhEq?.item_id ?? null) }}</span>
               </div>
-            </div>
-            @let bEq = getEquippedForSlot('body');
-            <div class="equip-cell" [class.filled]="!!bEq">
-              <span class="equip-icon">&#9863;</span><span class="equip-label">Corpo</span>
-              <span class="equip-name">{{ getItemName(bEq?.item_id ?? null) }}</span>
-            </div>
-            @let legEq = getEquippedForSlot('legs');
-            <div class="equip-cell" [class.filled]="!!legEq">
-              <span class="equip-icon">&#9724;</span><span class="equip-label">Pernas</span>
-              <span class="equip-name">{{ getItemName(legEq?.item_id ?? null) }}</span>
-            </div>
-            @let bootEq = getEquippedForSlot('boots');
-            <div class="equip-cell" [class.filled]="!!bootEq">
-              <span class="equip-icon">&#9734;</span><span class="equip-label">Botas</span>
-              <span class="equip-name">{{ getItemName(bootEq?.item_id ?? null) }}</span>
-            </div>
-            @let glvEq = getEquippedForSlot('gloves');
-            <div class="equip-cell" [class.filled]="!!glvEq">
-              <span class="equip-icon">&#9730;</span><span class="equip-label">Luvas</span>
-              <span class="equip-name">{{ getItemName(glvEq?.item_id ?? null) }}</span>
             </div>
             <div class="equip-pair">
               @let acc1Eq = getEquippedForSlot('accessory_1');
@@ -163,17 +202,38 @@
                 <span class="equip-icon">&#9733;</span><span class="equip-label">Acess.1</span>
                 <span class="equip-name">{{ getItemName(acc1Eq?.item_id ?? null) }}</span>
               </div>
+              @let legEq = getEquippedForSlot('legs');
+              <div class="equip-cell" [class.filled]="!!legEq">
+                <span class="equip-icon">&#9724;</span><span class="equip-label">Pernas</span>
+                <span class="equip-name">{{ getItemName(legEq?.item_id ?? null) }}</span>
+              </div>
               @let acc2Eq = getEquippedForSlot('accessory_2');
               <div class="equip-cell" [class.filled]="!!acc2Eq">
                 <span class="equip-icon">&#9733;</span><span class="equip-label">Acess.2</span>
                 <span class="equip-name">{{ getItemName(acc2Eq?.item_id ?? null) }}</span>
               </div>
             </div>
+
+            @let bootEq = getEquippedForSlot('boots');
+            <div class="equip-cell" [class.filled]="!!bootEq">
+              <span class="equip-icon">&#9734;</span><span class="equip-label">Botas</span>
+              <span class="equip-name">{{ getItemName(bootEq?.item_id ?? null) }}</span>
+            </div>
+            <!-- @let glvEq = getEquippedForSlot('gloves');
+            <div class="equip-cell" [class.filled]="!!glvEq">
+              <span class="equip-icon">&#9730;</span><span class="equip-label">Luvas</span>
+              <span class="equip-name">{{ getItemName(glvEq?.item_id ?? null) }}</span>
+            </div> -->
           </div>
         </div>
         <div class="notes-bar">
           <h3>Notas</h3>
-          <textarea formControlName="notes" rows="3" placeholder="Anotações..." [readonly]="!editMode()"></textarea>
+          <textarea
+            formControlName="notes"
+            rows="3"
+            placeholder="Anotações..."
+            [readonly]="!editMode()"
+          ></textarea>
         </div>
       </div>
 
@@ -198,7 +258,13 @@
       <div class="tabs-column">
         <div class="tab-bar">
           @for (t of bottomTabs; track t.key) {
-            <button class="tab-btn" [class.active]="bottomTab() === t.key" (click)="bottomTab.set(t.key)">{{ t.label }}</button>
+            <button
+              class="tab-btn"
+              [class.active]="bottomTab() === t.key"
+              (click)="bottomTab.set(t.key)"
+            >
+              {{ t.label }}
+            </button>
           }
         </div>
         <div class="tab-body">
@@ -214,11 +280,15 @@
                   <span class="row-icon">&#9876;</span>
                   <div class="row-info">
                     <strong>{{ item.name }}</strong>
-                    @if (item.description) { <small>{{ item.description }}</small> }
+                    @if (item.description) {
+                      <small>{{ item.description }}</small>
+                    }
                   </div>
                   @if (auth.isMaster()) {
                     <div class="qty-ctrl">
-                      <button (click)="updateItemQty(item, -1)">−</button><span>{{ item.quantity }}</span><button (click)="updateItemQty(item, 1)">+</button>
+                      <button (click)="updateItemQty(item, -1)">−</button
+                      ><span>{{ item.quantity }}</span
+                      ><button (click)="updateItemQty(item, 1)">+</button>
                     </div>
                     <button class="btn-del" (click)="deleteItem(item)">×</button>
                   }
@@ -237,9 +307,13 @@
               @for (sk of sheet()?.skills ?? []; track sk.id) {
                 <div class="row-card" [class.proficient]="sk.proficient">
                   <span>{{ sk.name }}</span>
-                  @if (sk.bonus) { <span class="row-bonus">+{{ sk.bonus }}</span> }
+                  @if (sk.bonus) {
+                    <span class="row-bonus">+{{ sk.bonus }}</span>
+                  }
                   @if (auth.isMaster()) {
-                    <button class="btn-sm" (click)="toggleSkill(sk)">{{ sk.proficient ? '★' : '☆' }}</button>
+                    <button class="btn-sm" (click)="toggleSkill(sk)">
+                      {{ sk.proficient ? '★' : '☆' }}
+                    </button>
                     <button class="btn-del" (click)="deleteSkill(sk)">×</button>
                   }
                 </div>
@@ -259,9 +333,13 @@
                   <span class="row-icon">&#9889;</span>
                   <div class="row-info">
                     <strong>{{ ab.name }}</strong>
-                    @if (ab.description) { <small>{{ ab.description }}</small> }
+                    @if (ab.description) {
+                      <small>{{ ab.description }}</small>
+                    }
                   </div>
-                  @if (auth.isMaster()) { <button class="btn-del" (click)="deleteAbility(ab)">×</button> }
+                  @if (auth.isMaster()) {
+                    <button class="btn-del" (click)="deleteAbility(ab)">×</button>
+                  }
                 </div>
               }
             </div>
@@ -279,9 +357,16 @@
                   <span class="row-icon">&#9733;</span>
                   <div class="row-info">
                     <strong>{{ sp.name }}</strong>
-                    <small>{{ sp.mana_cost }} MP @if (sp.description) { — {{ sp.description }} }</small>
+                    <small
+                      >{{ sp.mana_cost }} MP
+                      @if (sp.description) {
+                        — {{ sp.description }}
+                      }
+                    </small>
                   </div>
-                  @if (auth.isMaster()) { <button class="btn-del" (click)="deleteSpell(sp)">×</button> }
+                  @if (auth.isMaster()) {
+                    <button class="btn-del" (click)="deleteSpell(sp)">×</button>
+                  }
                 </div>
               }
             </div>
@@ -293,13 +378,26 @@
     <!-- ═══ ADD MODAL ═══ -->
     @if (showAddModal()) {
       <div class="modal-backdrop" (click)="closeAddModal()">
-        <form class="add-modal" [formGroup]="addForm" (click)="$event.stopPropagation()" (submit)="saveAddModal()">
+        <form
+          class="add-modal"
+          [formGroup]="addForm"
+          (click)="$event.stopPropagation()"
+          (submit)="saveAddModal()"
+        >
           <h3>
             @switch (showAddModal()) {
-              @case ('item') { Novo Item }
-              @case ('skill') { Nova Perícia }
-              @case ('ability') { Nova Habilidade }
-              @case ('spell') { Nova Magia }
+              @case ('item') {
+                Novo Item
+              }
+              @case ('skill') {
+                Nova Perícia
+              }
+              @case ('ability') {
+                Nova Habilidade
+              }
+              @case ('spell') {
+                Nova Magia
+              }
             }
           </h3>
           <label>Nome <input formControlName="name" autofocus /></label>
@@ -307,9 +405,12 @@
             <label>Catálogo</label>
             <div class="catalog-picker">
               @for (it of catalogStore.snapshot.items; track it.id) {
-                <button type="button" class="catalog-item"
+                <button
+                  type="button"
+                  class="catalog-item"
                   [class.selected]="selectedCatalogItem() === it.id"
-                  (click)="selectCatalogItem(it.id)">
+                  (click)="selectCatalogItem(it.id)"
+                >
                   {{ it.name }}
                 </button>
               }
@@ -329,7 +430,9 @@
           }
           <div class="modal-actions">
             <button type="button" class="btn-ghost" (click)="closeAddModal()">Cancelar</button>
-            <button type="submit" class="btn-primary" [disabled]="addForm.invalid">Adicionar</button>
+            <button type="submit" class="btn-primary" [disabled]="addForm.invalid">
+              Adicionar
+            </button>
           </div>
         </form>
       </div>

@@ -198,6 +198,7 @@ export interface ItemCatalog extends BaseEntity {
   image_url: string;
   value: number;
   is_usable: boolean;
+  is_equippable: boolean;
   effect: EffectFormula;
 }
 

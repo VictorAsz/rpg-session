@@ -41,6 +41,7 @@ import type { ItemCatalog } from '../../shared/models/rpg-models';
                 <label class="span-2">Descrição <textarea formControlName="description" rows="3"></textarea></label>
                 <label class="span-2">URL Imagem <input formControlName="image_url" /></label>
                 <label class="checkbox-label"><input type="checkbox" formControlName="is_usable" /> Utilizável</label>
+                <label class="checkbox-label"><input type="checkbox" formControlName="is_equippable" /> Equipável</label>
                 <label>Fórmula <input formControlName="effectFormula" placeholder="ex: 2d10" /></label>
               </div>
               <div class="modal-actions">
@@ -80,6 +81,9 @@ import type { ItemCatalog } from '../../shared/models/rpg-models';
                   <div class="item-tags">
                     @if (it.is_usable) {
                       <span class="item-tag usable">&#9889; Utilizável</span>
+                    }
+                    @if (it.is_equippable) {
+                      <span class="item-tag equip">&#9876; Equipável</span>
                     }
                     @if (it.effect?.formula) {
                       <span class="item-tag formula">{{ it.effect.formula }}</span>
@@ -226,6 +230,10 @@ import type { ItemCatalog } from '../../shared/models/rpg-models';
       background: rgba(76,175,80,0.1);
       color: var(--theme-accent-green);
     }
+    .item-tag.equip {
+      background: rgba(212,175,55,0.1);
+      color: #d4af37;
+    }
     .item-tag.formula {
       background: rgba(233,69,96,0.08);
       color: var(--theme-primary);
@@ -278,6 +286,7 @@ export class ItemsCatalogComponent {
     image_url: [''],
     value: [0],
     is_usable: [false],
+    is_equippable: [false],
     effectFormula: [''],
   });
 
@@ -297,7 +306,7 @@ export class ItemsCatalogComponent {
 
   openForm(): void {
     this.editingId.set(null);
-    this.itemForm.reset({ value: 0, is_usable: false });
+    this.itemForm.reset({ value: 0, is_usable: false, is_equippable: false });
     this.showForm.set(true);
   }
 
@@ -305,7 +314,7 @@ export class ItemsCatalogComponent {
     this.editingId.set(it.id);
     this.itemForm.patchValue({
       name: it.name, description: it.description, image_url: it.image_url,
-      value: it.value, is_usable: it.is_usable,
+      value: it.value, is_usable: it.is_usable, is_equippable: it.is_equippable,
       effectFormula: it.effect?.formula ?? '',
     });
     this.showForm.set(true);
@@ -316,7 +325,7 @@ export class ItemsCatalogComponent {
     const v = this.itemForm.getRawValue();
     const data: Partial<ItemCatalog> = {
       name: v.name!, description: v.description ?? '', image_url: v.image_url ?? '',
-      value: v.value ?? 0, is_usable: v.is_usable ?? false,
+      value: v.value ?? 0, is_usable: v.is_usable ?? false, is_equippable: v.is_equippable ?? false,
       effect: { type: 'custom', formula: v.effectFormula ?? '' },
     };
     const id = this.editingId();

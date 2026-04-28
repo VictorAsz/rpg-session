@@ -66,6 +66,7 @@ CREATE TABLE items_catalog (
   image_url     TEXT NOT NULL DEFAULT '',
   value         INT NOT NULL DEFAULT 0,
   is_usable     BOOLEAN NOT NULL DEFAULT false,
+  is_equippable BOOLEAN NOT NULL DEFAULT false,
   effect        JSONB DEFAULT '{}'::jsonb,
   created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );

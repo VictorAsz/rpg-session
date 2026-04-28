@@ -276,7 +276,20 @@
           </h3>
           <label>Nome <input formControlName="name" autofocus /></label>
           @if (showAddModal() === 'item') {
-            <label>Descrição <input formControlName="detail" /></label>
+            <label>Catálogo</label>
+            <div class="catalog-picker">
+              @for (it of catalogStore.snapshot.items; track it.id) {
+                <button type="button" class="catalog-item"
+                  [class.selected]="selectedCatalogItem() === it.id"
+                  (click)="selectCatalogItem(it.id)">
+                  {{ it.name }}
+                </button>
+              }
+            </div>
+            @if (!selectedCatalogItem()) {
+              <label>Nome <input formControlName="name" /></label>
+              <label>Descrição <input formControlName="detail" /></label>
+            }
             <label>Quantidade <input type="number" formControlName="extra" min="1" /></label>
           } @else if (showAddModal() === 'skill') {
             <label>Bônus <input type="number" formControlName="extra" /></label>

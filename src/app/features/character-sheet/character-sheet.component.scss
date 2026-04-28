@@ -204,6 +204,15 @@
 .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
 .btn-ghost { padding: 0.5rem 1.1rem; background: none; color: var(--theme-text-muted); border: 1px solid var(--theme-border); border-radius: var(--theme-radius-sm); font-size: 0.78rem; cursor: pointer; }
 
+.catalog-picker { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: 0.75rem; max-height: 120px; overflow-y: auto; }
+.catalog-item {
+  padding: 0.25rem 0.6rem; border: 1px solid var(--theme-border); border-radius: var(--theme-radius-sm);
+  background: var(--theme-surface); color: var(--theme-text-muted); font-size: 0.68rem; cursor: pointer;
+  transition: all var(--theme-transition);
+}
+.catalog-item:hover { border-color: var(--theme-primary); color: var(--theme-text); }
+.catalog-item.selected { background: var(--theme-primary-bg); border-color: var(--theme-primary); color: var(--theme-primary); }
+
 .toast { position: fixed; bottom: 1rem; right: 1rem; background: var(--theme-surface); color: var(--theme-text-muted); padding: 0.4rem 0.8rem; border-radius: var(--theme-radius-sm); font-size: 0.75rem; border: 1px solid var(--theme-border); }
 
 .main-area::-webkit-scrollbar, .tab-body::-webkit-scrollbar, .left-stack::-webkit-scrollbar { width: 5px; }

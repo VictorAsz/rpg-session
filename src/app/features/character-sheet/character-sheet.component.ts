@@ -6,10 +6,12 @@ import { AsyncPipe } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
 import { CharacterService } from '../../domain/character/services/character.service';
 import { CharacterStore } from '../../domain/character/services/character.store';
+import { CatalogService } from '../../domain/compendium/services/catalog.service';
+import { CatalogStore } from '../../domain/compendium/services/catalog.store';
 import { AppSidebarComponent } from '../../shared/components/app-sidebar/app-sidebar.component';
 import type { CharacterSheet } from '../../shared/models/character-state.model';
 import type {
-  Character, Skill, Item, EquippedItem, Ability, Spell, Buff, EquipmentSlot,
+  Character, Skill, Item, EquippedItem, Ability, Spell, Buff, EquipmentSlot, ItemCatalog,
 } from '../../shared/models/rpg-models';
 
 const STATS = [
@@ -33,6 +35,8 @@ export class CharacterSheetComponent implements OnDestroy {
   readonly auth = inject(AuthService);
   private readonly characterService = inject(CharacterService);
   private readonly store = inject(CharacterStore);
+  readonly catalogService = inject(CatalogService);
+  readonly catalogStore = inject(CatalogStore);
   private readonly destroy$ = new Subject<void>();
 
   readonly sidebarOpen = signal(true);
@@ -77,7 +81,15 @@ export class CharacterSheetComponent implements OnDestroy {
     if (!id) { this.router.navigate(['/table']); return; }
 
     this.store.characterSheet$(id).pipe(takeUntil(this.destroy$)).subscribe(s => this.onSheetChanged(s));
+    // Fallback: populate form from characters list before sheet data loads
+    this.store.characters$.pipe(takeUntil(this.destroy$)).subscribe(chars => {
+      const char = chars.find(c => c.id === id);
+      if (char && !this.sheet()) {
+        this.patchFromCharacter(char);
+      }
+    });
     this.characterService.loadAllCharacters();
+    this.catalogService.loadCatalog();
 
     this.form.valueChanges.pipe(
       takeUntil(this.destroy$),
@@ -145,19 +157,22 @@ export class CharacterSheetComponent implements OnDestroy {
 
   openAddModal(type: 'item' | 'skill' | 'ability' | 'spell'): void {
     this.showAddModal.set(type);
-    this.addForm.reset({ name: '', detail: '', extra: 0 });
+    this.addForm.reset({ name: '', detail: '', extra: type === 'item' ? 1 : 0 });
+    this.selectedCatalogItem.set(null);
   }
 
   closeAddModal(): void { this.showAddModal.set(null); }
 
   async saveAddModal(): Promise<void> {
-    if (this.addForm.invalid) return;
     const id = this.characterId(); if (!id) return;
     const type = this.showAddModal();
     const v = this.addForm.getRawValue();
 
     if (type === 'item') {
-      await this.characterService.addItem({ character_id: id, name: v.name!, description: v.detail ?? '', quantity: v.extra ?? 1, effect: { type: 'custom', formula: '' } });
+      await this.characterService.addItem({
+        character_id: id, name: v.name!, description: v.detail ?? '',
+        quantity: v.extra ?? 1, effect: { type: 'custom', formula: '' },
+      });
     } else if (type === 'skill') {
       await this.characterService.addSkill({ character_id: id, name: v.name!, proficient: false, bonus: v.extra ?? 0 });
     } else if (type === 'ability') {
@@ -166,6 +181,21 @@ export class CharacterSheetComponent implements OnDestroy {
       await this.characterService.addSpell({ character_id: id, name: v.name!, description: v.detail ?? '', mana_cost: v.extra ?? 0, effect: { type: 'custom', formula: '' } });
     }
     this.closeAddModal();
+  }
+
+  // Catalog item selector
+  readonly selectedCatalogItem = signal<string | null>(null);
+
+  selectCatalogItem(itemId: string): void {
+    this.selectedCatalogItem.set(itemId === this.selectedCatalogItem() ? null : itemId);
+    if (itemId) {
+      const cat = this.catalogStore.snapshot.items.find(i => i.id === itemId);
+      if (cat) {
+        this.addForm.patchValue({ name: cat.name, detail: cat.description, extra: 1 });
+      }
+    } else {
+      this.addForm.reset({ name: '', detail: '', extra: 1 });
+    }
   }
 
   // ── CRUD Actions ────────────────────────────────────────────────────

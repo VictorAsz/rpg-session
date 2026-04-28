@@ -1,31 +1,22 @@
-import { Injectable, OnDestroy } from '@angular/core';
+import { Injectable, OnDestroy, inject } from '@angular/core';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { RealtimeService } from '../../../core/services/realtime.service';
 import type { RealtimeEvent } from '../../../shared/models/realtime-event.model';
 import type {
-  Character,
-  Skill,
-  Item,
-  EquippedItem,
-  Ability,
-  Spell,
-  Buff,
+  Character, Skill, Item, EquippedItem, Ability, Spell, Buff,
+  CharacterItem, CharacterSpell, CharacterAbility, ItemCatalog, SpellCatalog, AbilityCatalog,
 } from '../../../shared/models/rpg-models';
 import { CharacterStore } from './character.store';
 
 @Injectable({ providedIn: 'root' })
 export class CharacterService implements OnDestroy {
+  private readonly supabase = inject(SupabaseService);
+  private readonly realtime = inject(RealtimeService);
+  private readonly store = inject(CharacterStore);
   private readonly destroy$ = new Subject<void>();
-
-  constructor(
-    private readonly supabase: SupabaseService,
-    private readonly realtime: RealtimeService,
-    private readonly store: CharacterStore,
-  ) {}
-
-  // ── Initial Load ────────────────────────────────────────────────────
+  private readonly client = this.supabase.client;
 
   async loadAllCharacters(): Promise<void> {
     this.store.patch({ isLoading: true, error: null });
@@ -33,257 +24,247 @@ export class CharacterService implements OnDestroy {
       const characters = await this.supabase.fetchAll<Character>('characters');
       this.store.patch({ characters, isLoading: false });
       await Promise.all(characters.map((c) => this.loadSheetData(c.id)));
-    } catch (err) {
+    } catch {
       this.store.patch({ isLoading: false, error: 'Falha ao carregar personagens' });
     }
   }
 
   private async loadSheetData(characterId: string): Promise<void> {
     try {
-      const [skills, items, equippedItems, abilities, spells, buffs] = await Promise.all([
+      const [skills, equippedItems, buffs, ci, cs, ca] = await Promise.all([
         this.supabase.fetchAll<Skill>('skills', { column: 'character_id', value: characterId }),
-        this.supabase.fetchAll<Item>('items', { column: 'character_id', value: characterId }),
         this.supabase.fetchAll<EquippedItem>('equipped_items', { column: 'character_id', value: characterId }),
-        this.supabase.fetchAll<Ability>('abilities', { column: 'character_id', value: characterId }),
-        this.supabase.fetchAll<Spell>('spells', { column: 'character_id', value: characterId }),
         this.supabase.fetchAll<Buff>('buffs', { column: 'character_id', value: characterId }),
+        this.supabase.fetchAll<CharacterItem>('character_items', { column: 'character_id', value: characterId }),
+        this.supabase.fetchAll<CharacterSpell>('character_spells', { column: 'character_id', value: characterId }),
+        this.supabase.fetchAll<CharacterAbility>('character_abilities', { column: 'character_id', value: characterId }),
       ]);
+
+      // Join catalog data → map to legacy shapes
+      const items: Item[] = await this.resolveItems(ci);
+      const spells: Spell[] = await this.resolveSpells(cs);
+      const abilities: Ability[] = await this.resolveAbilities(ca);
 
       const s = this.store.snapshot;
       const character = s.characters.find((c) => c.id === characterId);
       if (!character) return;
 
       this.store.patch({
-        sheets: {
-          ...s.sheets,
-          [characterId]: { character, skills, items, equipment: equippedItems, abilities, spells, buffs },
-        },
+        sheets: { ...s.sheets, [characterId]: { character, skills, items, equipment: equippedItems, abilities, spells, buffs } },
       });
     } catch {}
   }
 
-  // ── Realtime Subscriptions ─────────────────────────────────────────
+  private async resolveItems(ci: CharacterItem[]): Promise<Item[]> {
+    if (ci.length === 0) return [];
+    const ids = ci.map(i => i.catalog_id);
+    const { data } = await this.client.from('items_catalog').select('*').in('id', ids);
+    const catalog = (data ?? []) as ItemCatalog[];
+    return ci.map(row => {
+      const cat = catalog.find(c => c.id === row.catalog_id);
+      return {
+        id: row.id, character_id: row.character_id, name: cat?.name ?? '???',
+        description: cat?.description ?? '', quantity: row.quantity,
+        effect: cat?.effect ?? { type: 'custom', formula: '' },
+        created_at: row.created_at,
+      } as Item;
+    });
+  }
+
+  private async resolveSpells(cs: CharacterSpell[]): Promise<Spell[]> {
+    if (cs.length === 0) return [];
+    const ids = cs.map(s => s.catalog_id);
+    const { data } = await this.client.from('spells_catalog').select('*').in('id', ids);
+    const catalog = (data ?? []) as SpellCatalog[];
+    return cs.map(row => {
+      const cat = catalog.find(c => c.id === row.catalog_id);
+      return {
+        id: row.id, character_id: row.character_id, name: cat?.name ?? '???',
+        description: cat?.description ?? '', mana_cost: cat?.mana_cost ?? 0,
+        effect: cat?.effect ?? { type: 'custom', formula: '' },
+        created_at: row.created_at,
+      } as Spell;
+    });
+  }
+
+  private async resolveAbilities(ca: CharacterAbility[]): Promise<Ability[]> {
+    if (ca.length === 0) return [];
+    const ids = ca.map(a => a.catalog_id);
+    const { data } = await this.client.from('abilities_catalog').select('*').in('id', ids);
+    const catalog = (data ?? []) as AbilityCatalog[];
+    return ca.map(row => {
+      const cat = catalog.find(c => c.id === row.catalog_id);
+      return {
+        id: row.id, character_id: row.character_id, name: cat?.name ?? '???',
+        description: cat?.description ?? '',
+        effect: cat?.effect ?? { type: 'custom', formula: '' },
+        created_at: row.created_at,
+      } as Ability;
+    });
+  }
+
+  // ── Realtime ─────────────────────────────────────────────────────────
 
   subscribeToRealtime(): void {
-    this.realtime
-      .onChanges<Character>('characters', '*')
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((e) => this.handleRemoteChange(e, 'character'));
-
-    this.realtime
-      .onChanges<Skill>('skills', '*')
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((e) => this.handleRemoteChange(e, 'skill'));
-
-    this.realtime
-      .onChanges<Item>('items', '*')
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((e) => this.handleRemoteChange(e, 'item'));
-
-    this.realtime
-      .onChanges<EquippedItem>('equipped_items', '*')
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((e) => this.handleRemoteChange(e, 'equippedItem'));
-
-    this.realtime
-      .onChanges<Ability>('abilities', '*')
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((e) => this.handleRemoteChange(e, 'ability'));
-
-    this.realtime
-      .onChanges<Spell>('spells', '*')
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((e) => this.handleRemoteChange(e, 'spell'));
-
-    this.realtime
-      .onChanges<Buff>('buffs', '*')
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((e) => this.handleRemoteChange(e, 'buff'));
+    this.realtime.onChanges<Character>('characters', '*').pipe(takeUntil(this.destroy$)).subscribe(e => {
+      if (e.event === 'DELETE') this.store.removeCharacter((e.old as any)['id']);
+      else if (e.new) this.store.upsertCharacter(e.new as Character);
+    });
+    this.realtime.onChanges<Skill>('skills', '*').pipe(takeUntil(this.destroy$)).subscribe(e => this.handleRemote(e, 'skill'));
+    this.realtime.onChanges<EquippedItem>('equipped_items', '*').pipe(takeUntil(this.destroy$)).subscribe(e => this.handleRemote(e, 'equippedItem'));
+    this.realtime.onChanges<Buff>('buffs', '*').pipe(takeUntil(this.destroy$)).subscribe(e => this.handleRemote(e, 'buff'));
+    this.realtime.onChanges<CharacterItem>('character_items', '*').pipe(takeUntil(this.destroy$)).subscribe(e => this.handleJunction(e, 'item'));
+    this.realtime.onChanges<CharacterSpell>('character_spells', '*').pipe(takeUntil(this.destroy$)).subscribe(e => this.handleJunction(e, 'spell'));
+    this.realtime.onChanges<CharacterAbility>('character_abilities', '*').pipe(takeUntil(this.destroy$)).subscribe(e => this.handleJunction(e, 'ability'));
   }
 
-  // ── Remote Change Router ───────────────────────────────────────────
-
-  private handleRemoteChange(
-    event: RealtimeEvent<unknown>,
-    entity: 'character' | 'skill' | 'item' | 'equippedItem' | 'ability' | 'spell' | 'buff',
-  ): void {
-    if (event.event === 'DELETE') {
-      this.applyDeletion(event, entity);
-    } else {
-      this.applyUpsert(event, entity);
+  private handleRemote(e: RealtimeEvent<unknown>, entity: string): void {
+    if (e.event === 'DELETE') {
+      const r = e.old as Record<string, string>;
+      const id = r['id'], cid = r['character_id'];
+      const fn = { skill: 'removeSkill', equippedItem: 'removeEquippedItem', buff: 'removeBuff' }[entity];
+      if (fn) (this.store as any)[fn](id, cid);
+    } else if (e.new) {
+      const fn = { skill: 'upsertSkill', equippedItem: 'upsertEquippedItem', buff: 'upsertBuff' }[entity];
+      if (fn) (this.store as any)[fn](e.new);
     }
   }
 
-  private applyUpsert(
-    event: RealtimeEvent<unknown>,
-    entity: string,
-  ): void {
-    const payload = event.new;
-    if (!payload) return;
-
-    switch (entity) {
-      case 'character':
-        return this.store.upsertCharacter(payload as Character);
-      case 'skill':
-        return this.store.upsertSkill(payload as Skill);
-      case 'item':
-        return this.store.upsertItem(payload as Item);
-      case 'equippedItem':
-        return this.store.upsertEquippedItem(payload as EquippedItem);
-      case 'ability':
-        return this.store.upsertAbility(payload as Ability);
-      case 'spell':
-        return this.store.upsertSpell(payload as Spell);
-      case 'buff':
-        return this.store.upsertBuff(payload as Buff);
-    }
-  }
-
-  private applyDeletion(
-    event: RealtimeEvent<unknown>,
-    entity: string,
-  ): void {
-    const payload = event.old;
-    if (!payload) return;
-
-    const record = payload as Record<string, string>;
-    const id = record['id'];
+  private handleJunction(e: RealtimeEvent<unknown>, entity: string): void {
+    if (!e.new && !e.old) return;
+    const record = (e.new ?? e.old) as Record<string, string>;
     const characterId = record['character_id'];
+    if (!characterId) return;
+    // Reload sheet for this character
+    this.loadSheetData(characterId);
+  }
 
-    switch (entity) {
-      case 'character':
-        return this.store.removeCharacter(id);
-      case 'skill':
-        return this.store.removeSkill(id, characterId);
-      case 'item':
-        return this.store.removeItem(id, characterId);
-      case 'equippedItem':
-        return this.store.removeEquippedItem(id, characterId);
-      case 'ability':
-        return this.store.removeAbility(id, characterId);
-      case 'spell':
-        return this.store.removeSpell(id, characterId);
-      case 'buff':
-        return this.store.removeBuff(id, characterId);
+  // ── CRUD: Items ──────────────────────────────────────────────────────
+
+  async addItem(data: Partial<Item>): Promise<void> {
+    if (!data.character_id) return;
+    // Ensure item exists in catalog
+    const { data: existing } = await this.client.from('items_catalog').select('id').eq('name', data.name).maybeSingle();
+    let catalogId: string;
+    if (existing) {
+      catalogId = existing['id'];
+    } else {
+      const { data: created } = await this.client.from('items_catalog').insert({
+        name: data.name, description: data.description ?? '',
+        effect: data.effect ?? {}, value: 0, is_usable: false,
+      }).select('id').single();
+      catalogId = created?.['id'] ?? '';
     }
+    if (!catalogId) return;
+    await this.client.from('character_items').insert({
+      character_id: data.character_id, catalog_id: catalogId, quantity: data.quantity ?? 1,
+    });
+    await this.loadSheetData(data.character_id);
   }
 
-  // ── Write Operations (local → Supabase → store) ────────────────────
-
-  async updateCharacter(id: string, changes: Partial<Character>): Promise<void> {
-    const updated = await this.supabase.update<Character>('characters', id, changes);
-    this.store.upsertCharacter(updated);
-  }
-
-  async createCharacter(payload: Omit<Character, 'id' | 'created_at' | 'updated_at'>): Promise<Character> {
-    const created = await this.supabase.insert<Character>('characters', payload);
-    this.store.upsertCharacter(created);
-    return created;
-  }
-
-  async deleteCharacter(id: string): Promise<void> {
-    await this.supabase.delete('characters', id);
-    this.store.removeCharacter(id);
-  }
-
-  async addSkill(payload: Omit<Skill, 'id' | 'created_at'>): Promise<void> {
-    const created = await this.supabase.insert<Skill>('skills', payload);
-    this.store.upsertSkill(created);
-  }
-
-  async updateSkill(id: string, changes: Partial<Skill>): Promise<void> {
-    const updated = await this.supabase.update<Skill>('skills', id, changes);
-    this.store.upsertSkill(updated);
-  }
-
-  async deleteSkill(id: string, characterId: string): Promise<void> {
-    await this.supabase.delete('skills', id);
-    this.store.removeSkill(id, characterId);
-  }
-
-  async addItem(payload: Omit<Item, 'id' | 'created_at'>): Promise<void> {
-    const created = await this.supabase.insert<Item>('items', payload);
-    this.store.upsertItem(created);
-  }
-
-  async updateItem(id: string, changes: Partial<Item>): Promise<void> {
-    const updated = await this.supabase.update<Item>('items', id, changes);
-    this.store.upsertItem(updated);
+  async updateItem(id: string, data: Partial<Item>): Promise<void> {
+    await this.client.from('character_items').update({ quantity: data.quantity }).eq('id', id);
+    await this.refreshSheetByItemId(id);
   }
 
   async deleteItem(id: string, characterId: string): Promise<void> {
-    await this.supabase.delete('items', id);
+    await this.client.from('character_items').delete().eq('id', id);
     this.store.removeItem(id, characterId);
   }
 
-  async equipItem(
-    characterId: string,
-    itemId: string,
-    slot: EquippedItem['slot'],
-  ): Promise<void> {
-    const created = await this.supabase.insert<EquippedItem>('equipped_items', {
-      character_id: characterId,
-      item_id: itemId,
-      slot,
-    } as Partial<EquippedItem>);
-    this.store.upsertEquippedItem(created);
+  // ── CRUD: Spells ─────────────────────────────────────────────────────
+
+  async addSpell(data: Partial<Spell>): Promise<void> {
+    if (!data.character_id) return;
+    const { data: existing } = await this.client.from('spells_catalog').select('id').eq('name', data.name).maybeSingle();
+    let catalogId: string;
+    if (existing) {
+      catalogId = existing['id'];
+    } else {
+      const { data: created } = await this.client.from('spells_catalog').insert({
+        name: data.name, description: data.description ?? '', mana_cost: data.mana_cost ?? 0,
+        effect: data.effect ?? {}, type_cast: 'conjuracao', is_visible: true,
+      }).select('id').single();
+      catalogId = created?.['id'] ?? '';
+    }
+    if (!catalogId) return;
+    await this.client.from('character_spells').insert({ character_id: data.character_id, catalog_id: catalogId });
+    await this.loadSheetData(data.character_id);
   }
 
-  async unequipItem(equippedId: string, characterId: string): Promise<void> {
-    await this.supabase.delete('equipped_items', equippedId);
-    this.store.removeEquippedItem(equippedId, characterId);
-  }
-
-  async addAbility(payload: Omit<Ability, 'id' | 'created_at'>): Promise<void> {
-    const created = await this.supabase.insert<Ability>('abilities', payload);
-    this.store.upsertAbility(created);
-  }
-
-  async updateAbility(id: string, changes: Partial<Ability>): Promise<void> {
-    const updated = await this.supabase.update<Ability>('abilities', id, changes);
-    this.store.upsertAbility(updated);
-  }
-
-  async deleteAbility(id: string, characterId: string): Promise<void> {
-    await this.supabase.delete('abilities', id);
-    this.store.removeAbility(id, characterId);
-  }
-
-  async addSpell(payload: Omit<Spell, 'id' | 'created_at'>): Promise<void> {
-    const created = await this.supabase.insert<Spell>('spells', payload);
-    this.store.upsertSpell(created);
-  }
-
-  async updateSpell(id: string, changes: Partial<Spell>): Promise<void> {
-    const updated = await this.supabase.update<Spell>('spells', id, changes);
-    this.store.upsertSpell(updated);
+  async updateSpell(id: string, data: Partial<Spell>): Promise<void> {
+    await this.client.from('spells_catalog').update({
+      name: data.name, description: data.description, mana_cost: data.mana_cost,
+    }).eq('id', id);
+    await this.refreshSheetBySpellId(id);
   }
 
   async deleteSpell(id: string, characterId: string): Promise<void> {
-    await this.supabase.delete('spells', id);
+    await this.client.from('character_spells').delete().eq('id', id);
     this.store.removeSpell(id, characterId);
   }
 
-  async addBuff(payload: Omit<Buff, 'id' | 'created_at'>): Promise<void> {
-    const created = await this.supabase.insert<Buff>('buffs', payload);
-    this.store.upsertBuff(created);
+  // ── CRUD: Abilities ──────────────────────────────────────────────────
+
+  async addAbility(data: Partial<Ability>): Promise<void> {
+    if (!data.character_id) return;
+    const { data: existing } = await this.client.from('abilities_catalog').select('id').eq('name', data.name).maybeSingle();
+    let catalogId: string;
+    if (existing) {
+      catalogId = existing['id'];
+    } else {
+      const { data: created } = await this.client.from('abilities_catalog').insert({
+        name: data.name, description: data.description ?? '',
+        effect: data.effect ?? {}, ability_type: 'ativa', is_visible: true,
+      }).select('id').single();
+      catalogId = created?.['id'] ?? '';
+    }
+    if (!catalogId) return;
+    await this.client.from('character_abilities').insert({ character_id: data.character_id, catalog_id: catalogId });
+    await this.loadSheetData(data.character_id);
   }
 
-  async updateBuff(id: string, changes: Partial<Buff>): Promise<void> {
-    const updated = await this.supabase.update<Buff>('buffs', id, changes);
-    this.store.upsertBuff(updated);
+  async updateAbility(id: string, data: Partial<Ability>): Promise<void> {
+    await this.client.from('abilities_catalog').update({
+      name: data.name, description: data.description,
+    }).eq('id', id);
+    await this.refreshSheetByAbilityId(id);
   }
 
-  async deleteBuff(id: string, characterId: string): Promise<void> {
-    await this.supabase.delete('buffs', id);
-    this.store.removeBuff(id, characterId);
+  async deleteAbility(id: string, characterId: string): Promise<void> {
+    await this.client.from('character_abilities').delete().eq('id', id);
+    this.store.removeAbility(id, characterId);
   }
 
-  // ── Cleanup ─────────────────────────────────────────────────────────
+  // ── Helpers ──────────────────────────────────────────────────────────
 
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-    this.store.destroy();
+  private async refreshSheetByItemId(id: string): Promise<void> {
+    const { data } = await this.client.from('character_items').select('character_id').eq('id', id).single();
+    if (data) await this.loadSheetData(data['character_id']);
   }
+
+  private async refreshSheetBySpellId(id: string): Promise<void> {
+    const { data } = await this.client.from('character_spells').select('character_id').eq('id', id).single();
+    if (data) await this.loadSheetData(data['character_id']);
+  }
+
+  private async refreshSheetByAbilityId(id: string): Promise<void> {
+    const { data } = await this.client.from('character_abilities').select('character_id').eq('id', id).single();
+    if (data) await this.loadSheetData(data['character_id']);
+  }
+
+  // ── Unchanged CRUD ───────────────────────────────────────────────────
+
+  async createCharacter(data: Partial<Character>): Promise<Character> { const c = await this.supabase.insert<Character>('characters', data); this.store.upsertCharacter(c); return c; }
+  async updateCharacter(id: string, data: Partial<Character>): Promise<void> { const c = await this.supabase.update<Character>('characters', id, data); this.store.upsertCharacter(c); }
+  async deleteCharacter(id: string): Promise<void> { await this.supabase.delete('characters', id); this.store.removeCharacter(id); }
+  async addSkill(data: Partial<Skill>): Promise<void> { const c = await this.supabase.insert<Skill>('skills', data); this.store.upsertSkill(c); }
+  async updateSkill(id: string, data: Partial<Skill>): Promise<void> { const c = await this.supabase.update<Skill>('skills', id, data); this.store.upsertSkill(c); }
+  async deleteSkill(id: string, characterId: string): Promise<void> { await this.supabase.delete('skills', id); this.store.removeSkill(id, characterId); }
+  async equipItem(characterId: string, itemId: string, slot: EquippedItem['slot']): Promise<void> { const c = await this.supabase.insert<EquippedItem>('equipped_items', { character_id: characterId, item_id: itemId, slot } as any); this.store.upsertEquippedItem(c); }
+  async unequipItem(id: string, characterId: string): Promise<void> { await this.supabase.delete('equipped_items', id); this.store.removeEquippedItem(id, characterId); }
+  async addBuff(data: Partial<Buff>): Promise<void> { const c = await this.supabase.insert<Buff>('buffs', data); this.store.upsertBuff(c); }
+  async deleteBuff(id: string, characterId: string): Promise<void> { await this.supabase.delete('buffs', id); this.store.removeBuff(id, characterId); }
+
+  ngOnDestroy(): void { this.destroy$.next(); this.destroy$.complete(); }
 }

@@ -5,6 +5,7 @@ import { CharacterSheetComponent } from './features/character-sheet/character-sh
 import { StageComponent } from './features/stage/stage.component';
 import { CompendiumComponent } from './features/compendium/compendium.component';
 import { ItemsCatalogComponent } from './features/items-catalog/items-catalog.component';
+import { BestiaryComponent } from './features/bestiary/bestiary.component';
 import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
@@ -14,6 +15,7 @@ export const routes: Routes = [
   { path: 'character/:id', component: CharacterSheetComponent, canActivate: [authGuard] },
   { path: 'compendium', component: CompendiumComponent, canActivate: [authGuard] },
   { path: 'items', component: ItemsCatalogComponent, canActivate: [authGuard] },
+  { path: 'bestiary', component: BestiaryComponent, canActivate: [authGuard] },
   { path: '', redirectTo: '/stage', pathMatch: 'full' },
   { path: '**', redirectTo: '/stage' },
 ];

@@ -15,6 +15,7 @@ const NAV_ITEMS: NavItem[] = [
   { route: '/table', icon: '\u2603', label: 'Personagens' },
   { route: '/compendium', icon: '\u2726', label: 'Comp\u00EAndio' },
   { route: '/items', icon: '\u2660', label: 'Itens' },
+  { route: '/bestiary', icon: '\u2620', label: 'Besti\u00E1rio' },
   { route: '', icon: '\u2694', label: 'Combate', disabled: true },
   { route: '', icon: '\u2318', label: 'Mapa', disabled: true },
 ];

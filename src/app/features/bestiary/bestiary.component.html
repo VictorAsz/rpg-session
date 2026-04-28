@@ -1,0 +1,287 @@
+<div class="layout">
+  <app-sidebar />
+
+  <main class="main">
+    <header class="header">
+      <div>
+        <h2>Bestiário</h2>
+        <p class="subtitle">{{ creatures().length }} criaturas</p>
+      </div>
+      <button class="btn-primary" (click)="openForm()">+ Nova Criatura</button>
+    </header>
+
+    <!-- Filters -->
+    <div class="filters">
+      <input type="text" class="search-input" placeholder="Buscar criatura..."
+        [value]="search()" (input)="search.set($any($event.target).value)" />
+      <select class="filter-select" (change)="filterRarity.set($any($event.target).value)">
+        <option value="all">Todas raridades</option>
+        @for (r of rarities; track r) {
+          <option [value]="r">{{ RARITY_LABELS[r] }}</option>
+        }
+      </select>
+      <select class="filter-select" (change)="filterClass.set($any($event.target).value)">
+        <option value="all">Todas classificações</option>
+        @for (c of classifications; track c) {
+          <option [value]="c">{{ CLASSIFICATION_LABELS[c] }}</option>
+        }
+      </select>
+      <select class="filter-select" (change)="filterPublic.set($any($event.target).value)">
+        <option value="all">Visibilidade</option>
+        <option value="public">Público</option>
+        <option value="private">Privado</option>
+      </select>
+    </div>
+
+    <!-- Creature Cards -->
+    <div class="creature-grid">
+      @for (c of filteredCreatures(); track c.id) {
+        <div class="creature-card" [class.private]="!c.is_public" (click)="toggleQuickView(c)">
+          <div class="card-image">
+            <img [src]="displayImage(c)" alt="" />
+            <span class="card-level">Nvl {{ c.level }}</span>
+            <span class="card-rarity" [style.background]="RARITY_COLORS[c.rarity]">
+              {{ RARITY_LABELS[c.rarity] }}
+            </span>
+            @if (!c.is_public) { <span class="private-badge">Privado</span> }
+          </div>
+          <div class="card-body">
+            <strong>{{ c.name }}</strong>
+            <span class="card-class">{{ CLASSIFICATION_LABELS[c.classification] }}</span>
+            @if (c.short_description) {
+              <p class="card-desc">{{ c.short_description }}</p>
+            }
+            <div class="card-stats">
+              <span>HP {{ c.hp }}</span>
+              <span>ARM {{ c.armor }}</span>
+              <span>VEL {{ c.speed }}</span>
+            </div>
+          </div>
+          @if (auth.isMaster()) {
+            <div class="card-actions">
+              <button class="btn-sm" (click)="$event.stopPropagation(); openForm(c)">Editar</button>
+              <button class="btn-sm danger" (click)="$event.stopPropagation(); deleteCreature(c)">Remover</button>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    @if (filteredCreatures().length === 0) {
+      <div class="empty-state">
+        <span class="empty-icon">&#9760;</span>
+        <p>{{ (creatures().length === 0) ? 'Nenhuma criatura. Crie a primeira!' : 'Nenhum resultado.' }}</p>
+      </div>
+    }
+
+    <!-- Quick View Modal -->
+    @if (quickView()) {
+      <div class="modal-backdrop" (click)="quickView.set(null)">
+        <div class="quick-view" (click)="$event.stopPropagation()">
+          @let q = quickView()!;
+          <div class="qv-header">
+            <div class="qv-image">
+              <img [src]="displayImage(q)" alt="" />
+            </div>
+            <div class="qv-title">
+              <h3>{{ q.name }}</h3>
+              <span class="qv-badges">
+                <span [style.background]="RARITY_COLORS[q.rarity]">{{ RARITY_LABELS[q.rarity] }}</span>
+                <span>{{ CLASSIFICATION_LABELS[q.classification] }}</span>
+                <span>Nvl {{ q.level }}</span>
+              </span>
+            </div>
+          </div>
+          <div class="qv-body">
+            <div class="qv-col">
+              <h4>Combate</h4>
+              <div class="qv-grid">
+                <span>HP <strong>{{ q.hp }}</strong></span>
+                <span>Mana <strong>{{ q.mana }}</strong></span>
+                <span>Armadura <strong>{{ q.armor }}</strong></span>
+                <span>Velocidade <strong>{{ q.speed }}</strong></span>
+                <span>Iniciativa <strong>{{ q.initiative }}</strong></span>
+              </div>
+              <div class="qv-grid qv-grid-5">
+                <span>FOR <strong>{{ q.strength }}</strong></span>
+                <span>DES <strong>{{ q.dexterity }}</strong></span>
+                <span>CON <strong>{{ q.constitution }}</strong></span>
+                <span>INT <strong>{{ q.intelligence }}</strong></span>
+                <span>SAB <strong>{{ q.wisdom }}</strong></span>
+              </div>
+              @if (q.skills.length) { <p><small>Perícias:</small> {{ q.skills.join(', ') }}</p> }
+              @if (q.resistances.length) { <p><small>Resistências:</small> {{ q.resistances.join(', ') }}</p> }
+              @if (q.weaknesses.length) { <p><small>Fraquezas:</small> {{ q.weaknesses.join(', ') }}</p> }
+            </div>
+            <div class="qv-col">
+              <h4>Ecologia</h4>
+              <p><small>Espécie:</small> {{ q.species || '—' }}</p>
+              <p><small>Bioma:</small> {{ BIOME_LABELS[q.biome] }}</p>
+              <p><small>Habitat:</small> {{ q.habitat || '—' }}</p>
+              <p><small>Dieta:</small> {{ DIET_LABELS[q.diet] }}</p>
+              <p><small>Comportamento:</small> {{ BEHAVIOR_LABELS[q.behavior] }}</p>
+              <p><small>Inteligência:</small> {{ INTELLIGENCE_LABELS[q.intelligence_level] }}</p>
+              @if (q.lifespan) { <p><small>Expectativa de vida:</small> {{ q.lifespan }}</p> }
+            </div>
+          </div>
+          @if (q.description) {
+            <div class="qv-lore">
+              <h4>Descrição</h4>
+              <p>{{ q.description }}</p>
+            </div>
+          }
+          <div class="qv-actions">
+            @if (auth.isMaster()) { <button class="btn-sm" (click)="quickView.set(null); openForm(q)">Editar</button> }
+            <button class="btn-sm" (click)="quickView.set(null)">Fechar</button>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- FORM MODAL -->
+    @if (showForm()) {
+      <div class="modal-backdrop" (click)="showForm.set(false)">
+        <form class="modal" [formGroup]="form" (click)="$event.stopPropagation()" (submit)="save()">
+          <h3>{{ editingId() ? 'Editar' : 'Nova' }} Criatura</h3>
+
+          <!-- Section tabs -->
+          <div class="section-tabs">
+            @for (s of formSections; track s.key) {
+              <button type="button" class="section-tab" [class.active]="activeSection() === s.key" (click)="activeSection.set(s.key)">
+                {{ s.label }}
+              </button>
+            }
+          </div>
+
+          <!-- BASIC -->
+          @if (activeSection() === 'basic') {
+            <div class="form-grid">
+              <label class="span-2">Nome <input formControlName="name" /></label>
+              <label class="span-2">Descrição Curta <input formControlName="short_description" /></label>
+              <label class="span-2">Descrição (Lore) <textarea formControlName="description" rows="4"></textarea></label>
+              <label>Nível <input type="number" formControlName="level" min="1" max="20" /></label>
+              <label>
+                Raridade
+                <select formControlName="rarity">
+                  @for (r of rarities; track r) { <option [value]="r">{{ RARITY_LABELS[r] }}</option> }
+                </select>
+              </label>
+              <label>URL Imagem <input formControlName="image" /></label>
+              <label>URL Token <input formControlName="token_image" /></label>
+              <label class="checkbox-label"><input type="checkbox" formControlName="is_public" /> Público</label>
+              <label class="checkbox-label"><input type="checkbox" formControlName="is_playable" /> Jogável</label>
+            </div>
+          }
+
+          <!-- COMBAT -->
+          @if (activeSection() === 'combat') {
+            <div class="form-grid">
+              <label>HP <input type="number" formControlName="hp" /></label>
+              <label>Mana <input type="number" formControlName="mana" /></label>
+              <label>Armadura <input type="number" formControlName="armor" /></label>
+              <label>Velocidade <input type="number" formControlName="speed" /></label>
+              <label>Iniciativa <input type="number" formControlName="initiative" /></label>
+              <label></label>
+              <label>Força <input type="number" formControlName="strength" /></label>
+              <label>Destreza <input type="number" formControlName="dexterity" /></label>
+              <label>Constituição <input type="number" formControlName="constitution" /></label>
+              <label>Inteligência <input type="number" formControlName="intelligence" /></label>
+              <label>Sabedoria <input type="number" formControlName="wisdom" /></label>
+              <label class="span-2">Perícias <input formControlName="skills" placeholder="atletismo, furtividade, percepção" /></label>
+              <label class="span-2">Resistências <input formControlName="resistances" placeholder="fogo, corte, veneno" /></label>
+              <label class="span-2">Fraquezas <input formControlName="weaknesses" placeholder="eletrico, trevas" /></label>
+              <label class="span-2">Imunidades <input formControlName="immunities" placeholder="medo, ilusão, fogo" /></label>
+              <label class="span-2">Tipos de Dano <input formControlName="damage_types" placeholder="corte, contundente" /></label>
+              <label class="span-2">Tabela de Loot <input formControlName="loot_table" placeholder="garra de dragão, escama" /></label>
+            </div>
+          }
+
+          <!-- ECOLOGY -->
+          @if (activeSection() === 'ecology') {
+            <div class="form-grid">
+              <label>Espécie <input formControlName="species" /></label>
+              <label>
+                Classificação
+                <select formControlName="classification">
+                  @for (c of classifications; track c) { <option [value]="c">{{ CLASSIFICATION_LABELS[c] }}</option> }
+                </select>
+              </label>
+              <label>Habitat <input formControlName="habitat" /></label>
+              <label>Região <input formControlName="region" /></label>
+              <label>
+                Bioma
+                <select formControlName="biome">
+                  @for (b of biomes; track b) { <option [value]="b">{{ BIOME_LABELS[b] }}</option> }
+                </select>
+              </label>
+              <label>
+                Dieta
+                <select formControlName="diet">
+                  @for (d of diets; track d) { <option [value]="d">{{ DIET_LABELS[d] }}</option> }
+                </select>
+              </label>
+              <label>
+                Comportamento
+                <select formControlName="behavior">
+                  @for (b of behaviors; track b) { <option [value]="b">{{ BEHAVIOR_LABELS[b] }}</option> }
+                </select>
+              </label>
+              <label>
+                Inteligência
+                <select formControlName="intelligence_level">
+                  @for (l of intLevels; track l) { <option [value]="l">{{ INTELLIGENCE_LABELS[l] }}</option> }
+                </select>
+              </label>
+              <label>Idioma <input formControlName="language" /></label>
+              <label>Expectativa de Vida <input formControlName="lifespan" /></label>
+              <label class="span-2">Reprodução <input formControlName="reproduction" /></label>
+              <label class="span-2">Estágios de Crescimento <input formControlName="growth_stages" placeholder="filhote, adulto, ancião" /></label>
+            </div>
+          }
+
+          <!-- ABILITIES -->
+          @if (activeSection() === 'abilities') {
+            <div class="abilities-section">
+              <h4>Habilidades Atribuídas</h4>
+              @if (creatureAbilities().length === 0) {
+                <p class="empty">Nenhuma habilidade vinculada.</p>
+              }
+
+              @for (ca of creatureAbilities(); track ca.id) {
+                <div class="ability-row">
+                  <span>{{ getAbilityName(ca) }}</span>
+                  <span class="ability-slot">{{ ca.slot_type === 'active' ? 'Ativa' : 'Passiva' }}</span>
+                  <button class="btn-sm danger" (click)="removeAbility(ca.id)">Remover</button>
+                </div>
+              }
+
+              <div class="ability-add">
+                <select #abilitySelect class="ability-select">
+                  <option value="">+ Vincular habilidade</option>
+                  @for (a of catalogStore.snapshot.abilities; track a.id) {
+                    <option [value]="a.id">{{ a.name }}</option>
+                  }
+                  @for (s of catalogStore.snapshot.spells; track s.id) {
+                    <option [value]="s.id">{{ s.name }}</option>
+                  }
+                </select>
+                <select #slotSelect class="ability-select">
+                  <option value="active">Ativa</option>
+                  <option value="passive">Passiva</option>
+                </select>
+                <button class="btn-primary btn-sm" (click)="addAbility(abilitySelect.value, slotSelect.value); abilitySelect.value = ''">
+                  Vincular
+                </button>
+              </div>
+            </div>
+          }
+
+          <div class="modal-actions">
+            <button type="button" class="btn-ghost" (click)="showForm.set(false)">Cancelar</button>
+            <button type="submit" class="btn-primary" [disabled]="form.invalid">Salvar</button>
+          </div>
+        </form>
+      </div>
+    }
+  </main>
+</div>

@@ -85,13 +85,12 @@
 }
 
 .equip-grid {
-  display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+  display: flex; flex-direction: column; align-items: center; gap: 0.4rem;
 }
 
-.equip-row-body, .equip-row-bottom {
-  display: flex; gap: 0.5rem; align-items: center; justify-content: center;
+.equip-pair {
+  display: flex; gap: 0.4rem;
 }
-.equip-row-bottom { flex-wrap: wrap; max-width: 380px; }
 
 .equip-cell {
   background: var(--theme-surface);
@@ -111,20 +110,6 @@
 .equip-label { font-size: 0.58rem; color: var(--theme-text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
 .equip-name  { font-size: 0.75rem; color: var(--theme-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .equip-cell.filled .equip-name { color: var(--theme-heading); font-weight: 500; }
-
-.portrait-ring {
-  width: 66px; height: 66px; border-radius: 50%;
-  border: 3px solid rgba(212,175,55,0.25);
-  background: var(--theme-surface); flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 0 20px rgba(0,0,0,0.3);
-}
-.portrait-ring-inner {
-  width: 52px; height: 52px; border-radius: 50%;
-  background: linear-gradient(135deg, #4a3020, #2a1808);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1.15rem; font-weight: 700; color: #d4af37;
-}
 
 /* ═══════════════ CENTER: ATTRIBUTES ═══════════════ */
 

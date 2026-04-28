@@ -25,7 +25,6 @@ const STATS = [
   { key: 'constitution' as const, label: 'Constituição' },
   { key: 'intelligence' as const, label: 'Inteligência' },
   { key: 'wisdom' as const, label: 'Sabedoria' },
-  { key: 'inspiration' as const, label: 'Inspiração' },
 ];
 
 interface CharForm {

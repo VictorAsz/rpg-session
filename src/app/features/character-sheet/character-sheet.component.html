@@ -51,76 +51,76 @@
 
     <!-- ═══ BODY: 3-column layout ═══ -->
     <div class="body-row">
-      <!-- LEFT: Equipment Grid -->
-      <div class="equip-column">
-        <h2 class="section-title">Equipamentos</h2>
-        <div class="equip-grid">
-          @let hEq = getEquippedForSlot('head');
-          <div class="equip-cell head" [class.filled]="!!hEq">
-            <span class="equip-icon">&#9700;</span>
-            <span class="equip-label">Cabeça</span>
-            <span class="equip-name">{{ getItemName(hEq?.item_id ?? null) }}</span>
+      <!-- LEFT: Equipment + Notes -->
+      <div class="left-stack">
+        <div class="equip-column">
+          <h2 class="section-title">Equipamentos</h2>
+          <div class="equip-grid">
+            @let hEq = getEquippedForSlot('head');
+            <div class="equip-cell head" [class.filled]="!!hEq">
+              <span class="equip-icon">&#9700;</span>
+              <span class="equip-label">Cabeça</span>
+              <span class="equip-name">{{ getItemName(hEq?.item_id ?? null) }}</span>
+            </div>
+
+            <div class="equip-pair">
+              @let lhEq = getEquippedForSlot('left_hand');
+              <div class="equip-cell" [class.filled]="!!lhEq">
+                <span class="equip-icon">&#9754;</span>
+                <span class="equip-label">Mão Esq.</span>
+                <span class="equip-name">{{ getItemName(lhEq?.item_id ?? null) }}</span>
+              </div>
+              @let bEq = getEquippedForSlot('body');
+              <div class="equip-cell body" [class.filled]="!!bEq">
+                <span class="equip-icon">&#9863;</span>
+                <span class="equip-label">Corpo</span>
+                <span class="equip-name">{{ getItemName(bEq?.item_id ?? null) }}</span>
+              </div>
+              @let rhEq = getEquippedForSlot('right_hand');
+              <div class="equip-cell" [class.filled]="!!rhEq">
+                <span class="equip-icon">&#9755;</span>
+                <span class="equip-label">Mão Dir.</span>
+                <span class="equip-name">{{ getItemName(rhEq?.item_id ?? null) }}</span>
+              </div>
+            </div>
+
+            <div class="equip-pair">
+              @let acc2Eq = getEquippedForSlot('accessory_2');
+              <div class="equip-cell" [class.filled]="!!acc2Eq">
+                <span class="equip-icon">&#9733;</span>
+                <span class="equip-label">Acess.2</span>
+                <span class="equip-name">{{ getItemName(acc2Eq?.item_id ?? null) }}</span>
+              </div>
+
+              @let legEq = getEquippedForSlot('legs');
+              <div class="equip-cell" [class.filled]="!!legEq">
+                <span class="equip-icon">&#9724;</span>
+                <span class="equip-label">Pernas</span>
+                <span class="equip-name">{{ getItemName(legEq?.item_id ?? null) }}</span>
+              </div>
+
+              @let acc1Eq = getEquippedForSlot('accessory_1');
+              <div class="equip-cell" [class.filled]="!!acc1Eq">
+                <span class="equip-icon">&#9733;</span>
+                <span class="equip-label">Acess.1</span>
+                <span class="equip-name">{{ getItemName(acc1Eq?.item_id ?? null) }}</span>
+              </div>
+            </div>
+
+            @let bootEq = getEquippedForSlot('boots');
+            <div class="equip-cell" [class.filled]="!!bootEq">
+              <span class="equip-icon">&#9734;</span>
+              <span class="equip-label">Botas</span>
+              <span class="equip-name">{{ getItemName(bootEq?.item_id ?? null) }}</span>
+            </div>
+
           </div>
+        </div>
 
-          <div class="equip-pair">
-            @let lhEq = getEquippedForSlot('left_hand');
-            <div class="equip-cell" [class.filled]="!!lhEq">
-              <span class="equip-icon">&#9754;</span>
-              <span class="equip-label">Mão Esq.</span>
-              <span class="equip-name">{{ getItemName(lhEq?.item_id ?? null) }}</span>
-            </div>
-
-            @let bEq = getEquippedForSlot('body');
-            <div class="equip-cell body" [class.filled]="!!bEq">
-              <span class="equip-icon">&#9863;</span>
-              <span class="equip-label">Corpo</span>
-              <span class="equip-name">{{ getItemName(bEq?.item_id ?? null) }}</span>
-            </div>
-
-            @let rhEq = getEquippedForSlot('right_hand');
-            <div class="equip-cell" [class.filled]="!!rhEq">
-              <span class="equip-icon">&#9755;</span>
-              <span class="equip-label">Mão Dir.</span>
-              <span class="equip-name">{{ getItemName(rhEq?.item_id ?? null) }}</span>
-            </div>
-          </div>
-
-          <div class="equip-pair">
-            @let acc1Eq = getEquippedForSlot('accessory_1');
-            <div class="equip-cell" [class.filled]="!!acc1Eq">
-              <span class="equip-icon">&#9733;</span>
-              <span class="equip-label">Acess.1</span>
-              <span class="equip-name">{{ getItemName(acc1Eq?.item_id ?? null) }}</span>
-            </div>
-            @let legEq = getEquippedForSlot('legs');
-            <div class="equip-cell" [class.filled]="!!legEq">
-              <span class="equip-icon">&#9724;</span>
-              <span class="equip-label">Pernas</span>
-              <span class="equip-name">{{ getItemName(legEq?.item_id ?? null) }}</span>
-            </div>
-            @let acc2Eq = getEquippedForSlot('accessory_2');
-            <div class="equip-cell" [class.filled]="!!acc2Eq">
-              <span class="equip-icon">&#9733;</span>
-              <span class="equip-label">Acess.2</span>
-              <span class="equip-name">{{ getItemName(acc2Eq?.item_id ?? null) }}</span>
-            </div>
-          </div>
-
-          @let bootEq = getEquippedForSlot('boots');
-          <div class="equip-cell" [class.filled]="!!bootEq">
-            <span class="equip-icon">&#9734;</span>
-            <span class="equip-label">Botas</span>
-            <span class="equip-name">{{ getItemName(bootEq?.item_id ?? null) }}</span>
-          </div>
-
-          <div class="equip-pair">
-            <!-- @let glvEq = getEquippedForSlot('gloves');
-            <div class="equip-cell" [class.filled]="!!glvEq">
-              <span class="equip-icon">&#9730;</span>
-              <span class="equip-label">Luvas</span>
-              <span class="equip-name">{{ getItemName(glvEq?.item_id ?? null) }}</span>
-            </div> -->
-          </div>
+        <!-- Notes (below equipment) -->
+        <div class="notes-bar">
+          <h3>Notas</h3>
+          <textarea formControlName="notes" rows="3" placeholder="Anotações..."></textarea>
         </div>
       </div>
 
@@ -357,16 +357,6 @@
               }
             </div>
           }
-
-          <!-- NOTES -->
-          <div class="notes-area">
-            <h3>Notas</h3>
-            <textarea
-              formControlName="notes"
-              rows="3"
-              placeholder="Anotações do personagem..."
-            ></textarea>
-          </div>
         </div>
         <!-- /tab-body -->
       </div>
